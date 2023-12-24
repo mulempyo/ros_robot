@@ -1,0 +1,4 @@
+<launch>
+ <node pkg="kwj_localization" type="initial_goal" name="initial_goal" />
+ 
+</launch>
