@@ -14,7 +14,6 @@ ros::NodeHandle nh;
 
 float pwr_left;
 float pwr_right;
-float pwr_angular;
  
 boolean Direction_left = true;
 boolean Direction_right = true;
@@ -24,7 +23,13 @@ const int encoder_maximum = 32767;
 volatile int posi = 0;
 long prevT = 0;
 float eprev= 0;
+float aprev = 0;
 float eintegral = 0;
+float aintegral = 0;
+const double TICKS_PER_METER = 1753;
+const int DRIFT_MULTIPLIER = 106;
+double velLeftWheel = 0;
+double velRightWheel = 0;
 
 std_msgs::Float64 left_pwm_msg;
 ros::Publisher leftPwm("left_pwm",&left_pwm_msg);
@@ -103,6 +108,41 @@ void left_wheel_tick() {
   }
 }
 
+void calc_vel_left_wheel(){
+   
+  static double prevTime = 0;
+  static int prevLeftCount = 0;
+  int numOfTicks = (65535 + left_wheel_tick_count.data - prevLeftCount) % 65535;
+ 
+  if (numOfTicks > 10000) {
+        numOfTicks = 0 - (65535 - numOfTicks);
+  }
+ 
+  
+  velLeftWheel = numOfTicks/TICKS_PER_METER/((millis()/1000)-prevTime);
+  prevLeftCount = left_wheel_tick_count.data;
+  prevTime = (millis()/1000);
+ 
+}
+
+void calc_vel_right_wheel(){
+   
+  static double prevTime = 0;
+  static int prevRightCount = 0;
+ 
+  int numOfTicks = (65535 + right_wheel_tick_count.data - prevRightCount) % 65535;
+ 
+  if (numOfTicks > 10000) {
+        numOfTicks = 0 - (65535 - numOfTicks);
+  }
+ 
+ 
+  velRightWheel = numOfTicks/TICKS_PER_METER/((millis()/1000)-prevTime); 
+  prevRightCount = right_wheel_tick_count.data; 
+  prevTime = (millis()/1000);
+ 
+}
+
 
 void teleop(int an1 ,int an2 ,int an3 ,int an4){
   digitalWrite(5, an1);
@@ -111,48 +151,49 @@ void teleop(int an1 ,int an2 ,int an3 ,int an4){
   digitalWrite(8, an4);
 }
 void updateVelocity(){
-   int target = 250*sin(prevT/1e6);
+   int target = 80*sin(prevT/1e6);
    
-   float kp_left = 1.1;
-   float kd_left = 0.06;
-   float ki_left = 0.09;
+   float kp_left = 1.25;
+   float kd_left = 0.17;
+   float ki_left = 0.38;
 
-   float kp_right = 1.02;
-   float kd_right = 0.02;
-   float ki_right = 0.22;
-
-   float kp_angular = 1;
-   float kd_angular = 1;
-   float ki_angular = 0;
+   float kp_right = 1.18;
+   float kd_right = 0.1;
+   float ki_right = 0.2;
    
    long currT = micros();
    float deltaT = ((float)(currT - prevT))/(1.0e6);
    prevT = currT;
+
+   static double prevDiff = 0;
+   static double prevPrevDiff = 0;
+   double currDifference = velLeftWheel - velRightWheel;
+   double avgDifference = (prevDiff+prevPrevDiff+currDifference)/3;
+   prevPrevDiff = prevDiff;
+   prevDiff = currDifference;
+   
    int pos = 0;
    ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
     pos = posi;
    }
-   int e = pos-target-cmd_vel.linear.x;
+   
+   int e = pos-target;
+   
    float debt = (e-eprev)/deltaT;
+
    eintegral = eintegral + e*deltaT;
    
    float u_left = kp_left*e + kd_left*debt + ki_left*eintegral;
+   u_left -= (int)(avgDifference*DRIFT_MULTIPLIER);
    float u_right = kp_right*e + kd_right*debt + ki_right*eintegral;
-   float u_angular = kp_angular*e + kd_angular*debt + ki_angular*eintegral;
+   u_right += (int)(avgDifference*DRIFT_MULTIPLIER);
+   eprev = e;
    
    pwr_left = fabs(u_left);
    pwr_right = fabs(u_right);
-   pwr_angular = fabs(u_angular);
-   
-   if (pwr_left > 255){
-    pwr_left = 255;
-   }
-   if(pwr_right > 255){
-    pwr_right = 255;
-   }
-   if(pwr_angular > 255){
-    pwr_angular = 255;
-   }
+      
+   pwr_left = constrain(pwr_left,80,150);
+   pwr_right = constrain(pwr_right,80,150);
    
 }
 
@@ -204,6 +245,8 @@ updateVelocity();
     previousMillis = currentMillis;
     leftPub.publish( &left_wheel_tick_count );
     rightPub.publish( &right_wheel_tick_count );
+    calc_vel_right_wheel();
+    calc_vel_left_wheel();
  
   }
  
@@ -226,13 +269,13 @@ updateVelocity();
     teleop(0,0,0,0);
   }
   else if(a == 0 && c > 0){ //left
-  analogWrite(9,pwr_angular);
-  analogWrite(10,pwr_angular);
+  analogWrite(9,pwr_left);
+  analogWrite(10,pwr_right);
     teleop(0,1,0,1);
   }
   else if(a == 0 && c < 0){ //right
-  analogWrite(9,pwr_angular);
-  analogWrite(10,pwr_angular);
+  analogWrite(9,pwr_left);
+  analogWrite(10,pwr_right);
     teleop(1,0,1,0);
   }
 
