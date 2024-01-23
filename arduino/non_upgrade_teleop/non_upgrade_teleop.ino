@@ -17,13 +17,6 @@ boolean Direction_right = true;
 
 const int encoder_minimum = -32768;
 const int encoder_maximum = 32767;
-volatile int posi = 0;
-long prevT = 0;
-float eprev= 0;
-float eintegral = 0;
-
-std_msgs::Float64 linear_velocity_error_integral;
-std_msgs::Float64 angular_velocity_error_integral;
 
 std_msgs::Int16 right_wheel_tick_count;
 ros::Publisher rightPub("right_ticks", &right_wheel_tick_count);
@@ -101,40 +94,15 @@ void left_wheel_tick() {
 
 
 void teleop(int an1 ,int an2 ,int an3 ,int an4){
+  analogWrite(9,255);
+  analogWrite(10,255);
   digitalWrite(5, an1);
   digitalWrite(6, an2);
   digitalWrite(7, an3);
   digitalWrite(8, an4);
 }
-void updateVelocity(){
-   int target = 250*sin(prevT/1e6);
-   float kp = 100;
-   float kd = 25;
-   float ki = 25;
-   long currT = micros();
-   float deltaT = ((float)(currT-prevT))/1.0e6;
-   prevT = currT;
-   int pos = 0;
-   ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
-    pos = posi;
-   }
-   int e = pos - target;
-   float debt = (e-eprev)/deltaT;
-   eintegral = eintegral + e*deltaT;
-   float u = kp*e + ki*eintegral;
-   float pwr = fabs(u);
-   if (pwr > 255){
-    pwr = 255;
-   }
-   
-    analogWrite(9,u);
-    analogWrite(10,u);
- 
-}
-
 
 void subCmdVel(const geometry_msgs::Twist& msg) {
- updateVelocity();
  cmd_vel = msg;
 }
 ros::Subscriber<geometry_msgs::Twist> sub("cmd_vel", subCmdVel); 
@@ -168,7 +136,6 @@ nh.subscribe(sub);
 void loop() {
 nh.spinOnce();
 currentMillis = millis();
-updateVelocity();
 
   if (currentMillis - previousMillis > interval) {
     previousMillis = currentMillis;
