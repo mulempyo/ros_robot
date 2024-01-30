@@ -1,6 +1,9 @@
 #include <ros.h>
+#include <std_msgs/String.h>
+#include <std_msgs/Float64.h>
 #include <std_msgs/Int16.h>
 #include <geometry_msgs/Twist.h>
+#include <util/atomic.h>
 
 ros::NodeHandle nh;
 
@@ -21,41 +24,48 @@ ros::Publisher rightPub("right_ticks", &right_wheel_tick_count);
  
 std_msgs::Int16 left_wheel_tick_count;
 ros::Publisher leftPub("left_ticks", &left_wheel_tick_count);
- 
 
-const int interval = 200;
+float pwr_left;
+float pwr_right;
+float left_debt;
+float right_debt;
+float left_eprev;
+float right_eprev;
+float left_eintegral;
+float right_eintegral;
+float kp_left = 3;
+float ki_left = 0.7;
+float kd_left = 0.7;
+
+float kp_right = 3.1;
+float ki_right = 2.2;
+float kd_right = 1.026;
+
+const int interval = 30;
 long previousMillis = 0;
 long currentMillis = 0;
+long prevT = 0;
 
-
+int left_e;
+int right_e;
+volatile int posi=0;
 const int enA = 9;
 const int in1 = 5;
 const int in2 = 6;
 const int enB = 10;
 const int in3 = 7;
 const int in4 = 8;
- 
-
-const int PWM_INCREMENT = 1;
-const int TICKS_PER_REVOLUTION = 1753; //left:1947
-const double WHEEL_RADIUS = 0.033;
-const double WHEEL_BASE = 0.17;
-const double TICKS_PER_METER = 1753;
-const int K_P = 278;
-const int b = 52;
-const int DRIFT_MULTIPLIER = 120;
 const int PWM_TURN = 80;
-const int PWM_MIN = 80; 
-const int PWM_MAX = 100; 
-double velLeftWheel = 0;
-double velRightWheel = 0;
-double pwmLeftReq = 0;
-double pwmRightReq = 0;
-double lastCmdVelReceived = 0;
  
 void right_wheel_tick() {
    
   int val = digitalRead(ENC_IN_RIGHT_B);
+  if(val>0){
+    posi++;
+  }
+  else{
+    posi--;
+  }
  
   if (val == LOW) {
     Direction_right = false; 
@@ -87,6 +97,12 @@ void right_wheel_tick() {
 void left_wheel_tick() {
    
   int val = digitalRead(ENC_IN_LEFT_B);
+  if(val>0){
+    posi++;
+  }
+  else{
+    posi--;
+  }
  
   if (val == LOW) {
     Direction_left = true; 
@@ -113,106 +129,92 @@ void left_wheel_tick() {
   }
 }
 
-
-void calc_vel_left_wheel(){
-   
-  static double prevTime = 0;
-  static int prevLeftCount = 0;
-  int numOfTicks = (65535 + left_wheel_tick_count.data - prevLeftCount) % 65535;
- 
-  if (numOfTicks > 10000) {
-        numOfTicks = 0 - (65535 - numOfTicks);
-  }
- 
-  
-  velLeftWheel = numOfTicks/TICKS_PER_METER/((millis()/1000)-prevTime);
-  prevLeftCount = left_wheel_tick_count.data;
-  prevTime = (millis()/1000);
- 
-}
- 
-
-void calc_vel_right_wheel(){
-   
-  static double prevTime = 0;
-  static int prevRightCount = 0;
- 
-  int numOfTicks = (65535 + right_wheel_tick_count.data - prevRightCount) % 65535;
- 
-  if (numOfTicks > 10000) {
-        numOfTicks = 0 - (65535 - numOfTicks);
-  }
- 
- 
-  velRightWheel = numOfTicks/TICKS_PER_METER/((millis()/1000)-prevTime); 
-  prevRightCount = right_wheel_tick_count.data; 
-  prevTime = (millis()/1000);
- 
+void teleop(int an1, int an2, int an3, int an4){
+  digitalWrite(5,an1);
+  digitalWrite(6,an2);
+  digitalWrite(7,an3);
+  digitalWrite(8,an4);
 }
  
 void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
    
-  lastCmdVelReceived = (millis()/1000);
-  pwmLeftReq = K_P * cmdVel.linear.x + b;
-  pwmRightReq = K_P * cmdVel.linear.x + b;
- 
-  if (cmdVel.angular.z != 0.0) {
-    
-    if (cmdVel.angular.z > 0.0) {
-      pwmLeftReq = -PWM_TURN;
-      pwmRightReq = PWM_TURN;
+  pwr_left = kp_left*left_e + ki_left*left_eintegral + kd_left*left_debt;
+  pwr_right = kp_right*right_e + ki_right*right_eintegral + kd_right*right_debt;
+
+  
+    if (cmdVel.linear.x >= 0) { //Straight
+      pwr_left = (kp_left*left_e + ki_left*left_eintegral + kd_left*left_debt);
+      pwr_right= (kp_right*right_e + ki_right*right_eintegral + kd_right*right_debt);
+      analogWrite(9,pwr_left);
+      analogWrite(10,pwr_right);
+      teleop(1,0,0,1);
     }
        
-    else {
-      pwmLeftReq = PWM_TURN;
-      pwmRightReq = -PWM_TURN;
+    else{ //Turn
+      if(cmdVel.angular.z > 0){ //left
+        analogWrite(9,pwr_left);
+        analogWrite(10,pwr_right);
+        teleop(0,1,0,1);
+     }
+     else { //right
+      analogWrite(9,pwr_left);
+      analogWrite(10,pwr_right);
+      teleop(1,0,1,0);
     }
-  }
-  
-  else {
-     
-   
-    static double prevDiff = 0;
-    static double prevPrevDiff = 0;
-    double currDifference = velLeftWheel - velRightWheel;
-    double avgDifference = (prevDiff+prevPrevDiff+currDifference)/3;
-    prevPrevDiff = prevDiff;
-    prevDiff = currDifference;
-    pwmLeftReq -= (int)(avgDifference * DRIFT_MULTIPLIER);
-    pwmRightReq += (int)(avgDifference * DRIFT_MULTIPLIER);
-  }
- 
-  
-  if (abs(pwmLeftReq) < PWM_MIN) {
-    pwmLeftReq = 0;
-  }
-  if (abs(pwmRightReq) < PWM_MIN) {
-    pwmRightReq = 0;  
-  }  
+   } 
+ pwr_left = constrain(pwr_left,0,255);
+ pwr_right = constrain(pwr_right,0,255);
 }
  
 void set_pwm_values() {
+   int target = 80;
+   
+   long currT = micros();
+   float deltaT = ((float)(currT - prevT))/(1.0e6);
+   prevT = currT;
+
+   
+   int pos = 0;
+   ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+    pos = posi;
+   }
+   
+   left_e = pos-target;
+   right_e = pos-target;
+   
+   left_debt = (left_e-left_eprev)/deltaT;
+   right_debt = (right_e-right_eprev)/deltaT;
+
+   left_eintegral = left_eintegral + left_e*deltaT;
+   right_eintegral = right_eintegral + right_e*deltaT;
+   
+   float u_left = kp_left*left_e + kd_left*left_debt + ki_left*left_eintegral;  
+   float u_right = kp_right*right_e + kd_right*right_debt + ki_right*right_eintegral;
+
+   left_eprev = left_e;
+   right_eprev = right_e;
+
+   pwr_left = fabs(u_left);
+   pwr_right = fabs(u_right);
+   
+   pwr_left = constrain(pwr_left,0,255);
+   pwr_right = constrain(pwr_right,0,255);
  
-  static int pwmLeftOut = 0;
-  static int pwmRightOut = 0;
- 
-  static bool stopped = false;
-  if ((pwmLeftReq * velLeftWheel < 0 && pwmLeftOut != 0) ||
-      (pwmRightReq * velRightWheel < 0 && pwmRightOut != 0)) {
-    pwmLeftReq = 0;
-    pwmRightReq = 0;
+  if ((pwr_left < 0) || (pwr_right < 0)) {
+    pwr_left = 0;
+    pwr_right = 0;
   }
  
   
-  if (pwmLeftReq > 0) { 
+  if (pwr_left > 0) { 
     digitalWrite(in1, HIGH);
     digitalWrite(in2, LOW);
   }
-  else if (pwmLeftReq < 0) { 
+  else if (pwr_left < 0) { 
     digitalWrite(in1, LOW);
     digitalWrite(in2, HIGH);
   }
-  else if (pwmLeftReq == 0 && pwmLeftOut == 0 ) { 
+  else if (pwr_left == 0 && pwr_right == 0 ) { 
     digitalWrite(in1, LOW);
     digitalWrite(in2, LOW);
   }
@@ -221,15 +223,15 @@ void set_pwm_values() {
     digitalWrite(in2, LOW);
   }
  
-  if (pwmRightReq > 0) { 
-    digitalWrite(in3, HIGH);
-    digitalWrite(in4, LOW);
-  }
-  else if(pwmRightReq < 0) { 
+  if (pwr_right > 0) { 
     digitalWrite(in3, LOW);
     digitalWrite(in4, HIGH);
   }
-  else if (pwmRightReq == 0 && pwmRightOut == 0) { 
+  else if(pwr_right < 0) { 
+    digitalWrite(in3, HIGH);
+    digitalWrite(in4, LOW);
+  }
+  else if (pwr_left == 0 && pwr_right == 0) { 
     digitalWrite(in3, LOW);
     digitalWrite(in4, LOW);
   }
@@ -238,38 +240,8 @@ void set_pwm_values() {
     digitalWrite(in4, LOW);
   }
  
-  
-  if (pwmLeftReq != 0 && velLeftWheel == 0) {
-    pwmLeftReq *= 1.5;
-  }
-  if (pwmRightReq != 0 && velRightWheel == 0) {
-    pwmRightReq *= 1.5;
-  }
- 
-  
-  if (abs(pwmLeftReq) > pwmLeftOut) {
-    pwmLeftOut += PWM_INCREMENT;
-  }
-  else if (abs(pwmLeftReq) < pwmLeftOut) {
-    pwmLeftOut -= PWM_INCREMENT;
-  }
-  else{}
-   
-  if (abs(pwmRightReq) > pwmRightOut) {
-    pwmRightOut += PWM_INCREMENT;
-  }
-  else if(abs(pwmRightReq) < pwmRightOut) {
-    pwmRightOut -= PWM_INCREMENT;
-  }
-  else{}
- 
-  
-  pwmLeftOut = (pwmLeftOut > PWM_MAX) ? PWM_MAX : pwmLeftOut;
-  pwmRightOut = (pwmRightOut > PWM_MAX) ? PWM_MAX : pwmRightOut;
-  pwmLeftOut = (pwmLeftOut < 0) ? 0 : pwmLeftOut;
-  pwmRightOut = (pwmRightOut < 0) ? 0 : pwmRightOut;
-  analogWrite(enA, pwmLeftOut);
-  analogWrite(enB, pwmRightOut);
+  analogWrite(enA, pwr_left);
+  analogWrite(enB, pwr_right);
 }
  
 
@@ -304,7 +276,7 @@ void setup() {
   analogWrite(enB, 0);
  
   
-  nh.getHardware()->setBaud(128000);
+  nh.getHardware()->setBaud(57600);
   nh.initNode();
   nh.advertise(rightPub);
   nh.advertise(leftPub);
@@ -321,17 +293,7 @@ void loop() {
     previousMillis = currentMillis;
     leftPub.publish( &left_wheel_tick_count );
     rightPub.publish( &right_wheel_tick_count );
- 
-    calc_vel_right_wheel();
-    calc_vel_left_wheel();
      
   }
-   
-  
-  if((millis()/1000) - lastCmdVelReceived > 1) {
-    pwmLeftReq = 0;
-    pwmRightReq = 0;
-  }
- 
   set_pwm_values();
 }
