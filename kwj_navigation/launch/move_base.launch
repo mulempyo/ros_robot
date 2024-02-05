@@ -8,9 +8,9 @@
     
     <node pkg="kwj_localization" type="initial_goal" name="initial_goal" />
 
-    <node pkg="kwj_localization" type="odom_pub" name="odom_pub">
-      <param name="initialPoseReceived" type="bool" value="false"/>
-    </node>
+    <node pkg="kwj_localization" type="odom_pub" name="odom_pub"/>
+      
+  
   
   <remap from="odom" to="odom_data_quat"/>
   <remap from="imu_data" to="imu/data"/>

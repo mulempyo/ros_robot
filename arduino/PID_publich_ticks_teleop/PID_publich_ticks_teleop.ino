@@ -229,13 +229,13 @@ updateVelocity();
     teleop(0,0,0,0);
   }
   else if(a == 0 && c > 0){ //left
-  analogWrite(9,pwr_left);
-  analogWrite(10,pwr_right);
+  analogWrite(9,80);
+  analogWrite(10,80);
     teleop(0,1,0,1);
   }
   else if(a == 0 && c < 0){ //right
-  analogWrite(9,pwr_left);
-  analogWrite(10,pwr_right);
+  analogWrite(9,80);
+  analogWrite(10,80);
     teleop(1,0,1,0);
   }
 
