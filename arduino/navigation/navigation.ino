@@ -33,13 +33,13 @@ float left_eprev;
 float right_eprev;
 float left_eintegral;
 float right_eintegral;
-float kp_left = 3;
-float ki_left = 0.7;
-float kd_left = 0.7;
+float kp_left = 2.9;
+float ki_left = 0.5;
+float kd_left = 0.5;
 
 float kp_right = 3.1;
 float ki_right = 2.2;
-float kd_right = 1.026;
+float kd_right = 1.027;
 
 const int interval = 30;
 long previousMillis = 0;
@@ -152,13 +152,13 @@ void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
        
     else{ //Turn
       if(cmdVel.angular.z > 0){ //left
-        analogWrite(9,pwr_left);
-        analogWrite(10,pwr_right);
+        analogWrite(9,80);
+        analogWrite(10,80);
         teleop(0,1,0,1);
      }
      else { //right
-      analogWrite(9,pwr_left);
-      analogWrite(10,pwr_right);
+      analogWrite(9,80);
+      analogWrite(10,80);
       teleop(1,0,1,0);
     }
    } 
