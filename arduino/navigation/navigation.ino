@@ -33,6 +33,8 @@ float left_eprev;
 float right_eprev;
 float left_eintegral;
 float right_eintegral;
+float lastCmdVelReceived=0;
+
 float kp_left = 2.9;
 float ki_left = 0.5;
 float kd_left = 0.5;
@@ -156,10 +158,12 @@ void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
         analogWrite(10,80);
         teleop(0,1,0,1);
      }
-     else { //right
+      else if(cmdVel.angular.z < 0) { //right
       analogWrite(9,80);
       analogWrite(10,80);
       teleop(1,0,1,0);
+    } else {
+      lastCmdVelReceived = 0;
     }
    } 
  pwr_left = constrain(pwr_left,0,255);
@@ -214,11 +218,7 @@ void set_pwm_values() {
     digitalWrite(in1, LOW);
     digitalWrite(in2, HIGH);
   }
-  else if (pwr_left == 0 && pwr_right == 0 ) { 
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, LOW);
-  }
-  else { // Left wheel stop
+  else { 
     digitalWrite(in1, LOW);
     digitalWrite(in2, LOW);
   }
@@ -231,17 +231,10 @@ void set_pwm_values() {
     digitalWrite(in3, HIGH);
     digitalWrite(in4, LOW);
   }
-  else if (pwr_left == 0 && pwr_right == 0) { 
+  else { 
     digitalWrite(in3, LOW);
     digitalWrite(in4, LOW);
   }
-  else { // Right wheel stop
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, LOW);
-  }
- 
-  analogWrite(enA, pwr_left);
-  analogWrite(enB, pwr_right);
 }
  
 
@@ -294,6 +287,11 @@ void loop() {
     leftPub.publish( &left_wheel_tick_count );
     rightPub.publish( &right_wheel_tick_count );
      
+  }
+  if((millis()/1000)-lastCmdVelReceived > 1){
+    analogWrite(9,0);
+    analogWrite(10,0);
+    teleop(0,0,0,0);
   }
   set_pwm_values();
 }
