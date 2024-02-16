@@ -12,10 +12,6 @@ ros::Publisher odom_data_pub_quat;
 nav_msgs::Odometry odomNew;
 nav_msgs::Odometry odomOld;
 
-#define JGA25370 0
-#define JGB520 1
-#define MOTORTYPE JGB520
-
 // Initial pose
 const double initialX = 0.0;
 const double initialY = 0.0;
@@ -26,7 +22,7 @@ const double PI = 3.141592;
 
 const double TICKS_PER_REVOLUTION = 1860.0; // For reference purposes.
 const double WHEEL_RADIUS = 0.033; // Wheel radius in meters
-const double WHEEL_BASE = 0.160; // Center of left tire to center of right tire
+const double WHEEL_BASE = 0.22; // Center of left tire to center of right tire
 const double TICKS_PER_METER = 9177;
 
 // Distance both wheels have traveled
@@ -57,15 +53,15 @@ void Calc_Left(const std_msgs::Int16& leftCount) {
          
     int leftTicks = (leftCount.data - lastCountL);
  
-    if (leftTicks > 10000) {
+    if (leftTicks > 30000) {
       leftTicks = 0 - (65535 - leftTicks);
     }
-    else if (leftTicks < -10000) {
+    else if (leftTicks < -30000) {
       leftTicks = 65535-leftTicks;
     }
     else{}
     distanceLeft = leftTicks/TICKS_PER_METER;
-  }
+ }
   lastCountL = leftCount.data;
 }
  
@@ -77,10 +73,10 @@ void Calc_Right(const std_msgs::Int16& rightCount) {
  
     int rightTicks = rightCount.data - lastCountR;
      
-    if (rightTicks > 10000) {
+    if (rightTicks > 30000) {
       rightTicks = 0 - (65535 - rightTicks);
     }
-    else if (rightTicks < -10000) {
+    else if (rightTicks < -30000) {
       rightTicks = 65535 - rightTicks;
     }
     else{}
