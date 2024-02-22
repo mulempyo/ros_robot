@@ -139,7 +139,7 @@ void teleop(int an1, int an2, int an3, int an4){
 }
  
 void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
-   
+  lastCmdVelReceived = (millis()/1000.0); 
   pwr_left = kp_left*left_e + ki_left*left_eintegral + kd_left*left_debt;
   pwr_right = kp_right*right_e + ki_right*right_eintegral + kd_right*right_debt;
 
@@ -152,7 +152,7 @@ void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
       teleop(1,0,0,1);
     }
        
-    else{ //Turn
+    else { //Turn
       if(cmdVel.angular.z > 0){ //left
         analogWrite(9,80);
         analogWrite(10,80);
@@ -204,7 +204,7 @@ void set_pwm_values() {
    pwr_left = constrain(pwr_left,0,255);
    pwr_right = constrain(pwr_right,0,255);
  
-  if ((pwr_left < 0) || (pwr_right < 0)) {
+  if ((pwr_left < 0) && (pwr_right < 0)) {
     pwr_left = 0;
     pwr_right = 0;
   }
