@@ -120,7 +120,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -213,3 +213,9 @@ target_link_libraries(initial_goal ${catkin_LIBRARIES})
 
 add_executable(odom_pub src/odom_pub.cpp)
 target_link_libraries(odom_pub ${catkin_LIBRARIES})
+
+add_executable(path_planner src/path_planner.cpp)
+target_link_libraries(path_planner ${catkin_LIBRARIES})
+
+add_executable(simple_drive_controller src/simple_drive_controller.cpp)
+target_link_libraries(simple_drive_controller ${catkin_LIBRARIES})

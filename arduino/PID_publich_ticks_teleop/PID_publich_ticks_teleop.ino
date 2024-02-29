@@ -123,13 +123,13 @@ void teleop(int an1 ,int an2 ,int an3 ,int an4){
 
 void updateVelocity(){
    int target = 80;
-   float kp_left = 2.9;
-   float ki_left = 0.5;
-   float kd_left = 0.5;
+   float kp_left = 3.1;
+   float ki_left = 1.2;
+   float kd_left = 1.2;
 
    float kp_right = 3.1;
-   float ki_right = 2.3;
-   float kd_right = 1.027;
+   float ki_right = 2.0;
+   float kd_right = 1.02;
    
    long currT = micros();
    float deltaT = ((float)(currT - prevT))/(1.0e6);
