@@ -25,6 +25,8 @@ ros::Publisher rightPub("right_ticks", &right_wheel_tick_count);
 std_msgs::Int16 left_wheel_tick_count;
 ros::Publisher leftPub("left_ticks", &left_wheel_tick_count);
 
+geometry_msgs::Twist cmd;
+
 float pwr_left;
 float pwr_right;
 float left_debt;
@@ -129,43 +131,39 @@ void left_wheel_tick() {
       left_wheel_tick_count.data--;  
     }  
   }
-}
-
-void teleop(int an1, int an2, int an3, int an4){
+}void teleop(int an1, int an2, int an3, int an4){
   digitalWrite(5,an1);
   digitalWrite(6,an2);
   digitalWrite(7,an3);
   digitalWrite(8,an4);
 }
+
  
 void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
+  cmd = cmdVel;
   lastCmdVelReceived = (millis()/1000.0); 
   pwr_left = kp_left*left_e + ki_left*left_eintegral + kd_left*left_debt;
   pwr_right = kp_right*right_e + ki_right*right_eintegral + kd_right*right_debt;
 
   
-    if (cmdVel.linear.x >= 0) { //Straight
-      pwr_left = (kp_left*left_e + ki_left*left_eintegral + kd_left*left_debt);
-      pwr_right= (kp_right*right_e + ki_right*right_eintegral + kd_right*right_debt);
+    if (cmd.linear.x >= 0) { //Straight
       analogWrite(9,pwr_left);
       analogWrite(10,pwr_right);
-      teleop(1,0,0,1);
     }
-       
-    else { //Turn
-      if(cmdVel.angular.z > 0){ //left
-        analogWrite(9,80);
-        analogWrite(10,80);
-        teleop(0,1,0,1);
-     }
-      else if(cmdVel.angular.z < 0) { //right
+    else{
+      if(cmd.angular.z > 0){
       analogWrite(9,80);
       analogWrite(10,80);
-      teleop(1,0,1,0);
-    } else {
-      lastCmdVelReceived = 0;
-    }
-   } 
+      }else if(cmd.angular.z < 0){
+      analogWrite(9,80);
+      analogWrite(10,80);
+      }
+      else{
+        lastCmdVelReceived = 0;
+      }
+        
+     }
+   
  pwr_left = constrain(pwr_left,0,255);
  pwr_right = constrain(pwr_right,0,255);
 }
@@ -197,9 +195,6 @@ void set_pwm_values() {
 
    left_eprev = left_e;
    right_eprev = right_e;
-
-   pwr_left = fabs(u_left);
-   pwr_right = fabs(u_right);
    
    pwr_left = constrain(pwr_left,0,255);
    pwr_right = constrain(pwr_right,0,255);
@@ -208,36 +203,22 @@ void set_pwm_values() {
     pwr_left = 0;
     pwr_right = 0;
   }
- 
+
   
-  if (pwr_left > 0) { 
-    digitalWrite(in1, HIGH);
-    digitalWrite(in2, LOW);
+  if (cmd.linear.x >= 0) { //straight
+    teleop(1,0,0,1);
   }
-  else if (pwr_left < 0) { 
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, HIGH);
+  else{ 
+  if(cmd.angular.z > 0){
+   teleop(0,1,0,1);
   }
-  else { 
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, LOW);
+  else if(cmd.angular.z < 0) {
+    teleop(1,0,1,0);
+  }else{
+    teleop(0,0,0,0);
   }
- 
-  if (pwr_right > 0) { 
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, HIGH);
-  }
-  else if(pwr_right < 0) { 
-    digitalWrite(in3, HIGH);
-    digitalWrite(in4, LOW);
-  }
-  else { 
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, LOW);
   }
 }
- 
-
 ros::Subscriber<geometry_msgs::Twist> subCmdVel("cmd_vel", &calc_pwm_values );
  
 void setup() {
