@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   tf
+  tf2_ros
 )
 
 ## System dependencies are found with CMake's conventions
@@ -120,7 +121,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -208,3 +209,8 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+add_executable(path_planner src/global_path_planner.cpp)
+target_link_libraries(path_planner ${catkin_LIBRARIES})
+
+add_executable(local_planner src/local_path_planner.cpp)
+target_link_libraries(local_planner ${catkin_LIBRARIES})

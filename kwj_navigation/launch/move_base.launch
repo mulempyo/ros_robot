@@ -10,9 +10,9 @@
 
     <node pkg="kwj_localization" type="odom_pub" name="odom_pub"/>
       
-    <node pkg="kwj_localization" type="path_planner" name="path_planner" />
+    <node pkg="kwj_navigation" type="global_path_planner" name="path_planner" />
    
-    <node pkg="kwj_localization" type="simple_drive_controller" name="simple_drive_controller"/>
+    <node pkg="kwj_navigation" type="local_path_planner" name="local_planner"/>
   
   <remap from="odom" to="odom_data_quat"/>
   <remap from="imu_data" to="imu/data"/>
