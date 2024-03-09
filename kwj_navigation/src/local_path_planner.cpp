@@ -1,31 +1,45 @@
+/*
+*path_planner.cpp
+*
+*This is a simple path planner node that subscribes to an occupancy grid
+*_map and publishes waypoints one at a time. The next waypoint is published
+*when the current pose reaches the previous waypoint. A* is the algorithm used.
+*
+*Author: Lloyd Brombach (lbrombach2@gmail.com)
+*11/7/2019
+*/
 #include "ros/ros.h"
 #include "practical_common.h"
-#include "geometry_msgs/Twist.h"
-#include <nav_msgs/OccupancyGrid.h>
-#include <nav_msgs/Path.h>
-#include "geometry_msgs/PoseStamped.h"
-#include <nav_msgs/Odometry.h>
-#include <cstdlib>
-#include <sensor_msgs/LaserScan.h>
-#include <iostream>
-#include <vector>
+#include "nav_msgs/OccupancyGrid.h"
+#include <geometry_msgs/Twist.h>
+#include "nav_msgs/Path.h"
 #include <tf/transform_listener.h>
+#include <vector>
 #include <math.h>
-
-ros::Subscriber subMap, subGoal;
-geometry_msgs::Twist cmd;
-ros::Publisher pubLaser,pub,pathPub;
-float PI = 3.141592;
+#include <iostream>
+#include <sensor_msgs/LaserScan.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 
 using namespace std;
 
+float PI = 3.141592;
+bool waypointActive = false;
+
+//create our subscriber and publisher.
+ros::Subscriber subMap, subPose, subGoal, subScan, subCurrentPose, subDesiredPose;
+ros::Publisher pub;
+ros::Publisher pathPub;
+ros::Publisher pubCmd;
+
+geometry_msgs::Twist cmd;
+geometry_msgs::PoseStamped desired;
+geometry_msgs::PoseWithCovarianceStamped amcl;
 
 //라이다는 base_link에서 x방향으로 0.055m, y방향으로 0.025m, z방향으로 0.18m만큼 떨어져 있다.
 //pose를 로봇의 base_link위치를, xOffset,yOffset은 라이다의 위치를,xCoordinate,yCoordinate는 로봇으로부터 장애물의 위치를 나타낸다.
-void obstacle_avoidance(sensor_msgs::LaserScan &laserScan){ 
-    int index;
-    double laserScan.ranges[index];
-    double real_angle = laserScan.angle_min + (index*laserScan.angle_increment); //ranges의 인덱스에서의 실제 각도를 나타냅니다.
+void obstacle_avoidance(const sensor_msgs::LaserScan& laserScan)
+{
+ //double real_angle = laserScan.angle_min + (index*laserScan.angle_increment); -> ranges의 인덱스에서의 실제 각도를 나타냅니다.
     int index_90 = (PI/2 - laserScan.angle_min) / laserScan.angle_increment; 
     int index_270 = (3*PI/2 - laserScan.angle_min) / laserScan.angle_increment;
     double distance_90 = laserScan.ranges[index_90];
@@ -45,9 +59,93 @@ void obstacle_avoidance(sensor_msgs::LaserScan &laserScan){
         cmd.linear.x = 1.0; //장애물이 없다면 계속해서 진직한다.
         cmd.angular.z = 0;
     }
-    pubLaser.publish(cmd);
+    pubCmd.publish(cmd);
+
 }
 
+void update_pose(const geometry_msgs::PoseWithCovarianceStamped &currentAmclPose)
+{
+    amcl.pose.pose.position.x = currentAmclPose.pose.pose.position.x;
+    amcl.pose.pose.position.y = currentAmclPose.pose.pose.position.y;
+    amcl.pose.pose.orientation.z = currentAmclPose.pose.pose.orientation.z;
+}
+
+void updateGoal(const geometry_msgs::PoseStamped &desiredPose) {
+  desired.pose.position.x = desiredPose.pose.position.x;
+  desired.pose.position.y = desiredPose.pose.position.y;
+  desired.pose.orientation.z = desiredPose.pose.orientation.z;
+  waypointActive = true;
+  desired = desiredPose;
+}
+
+double getDistanceError() {
+  double deltaX = desired.pose.position.x - amcl.pose.pose.position.x;
+  double deltaY = desired.pose.position.y - amcl.pose.pose.position.y;
+  return sqrt(pow(deltaX, 2) + pow(deltaY, 2));
+}
+
+double getAngularError() {
+  double deltaX = desired.pose.position.x - amcl.pose.pose.position.x;
+  double deltaY = desired.pose.position.y - amcl.pose.pose.position.y;
+  double thetaBearing = atan2(deltaY, deltaX);
+  double angularError = thetaBearing - amcl.pose.pose.orientation.z;
+  angularError = (angularError > PI)  ? angularError - (2 * PI) : angularError;
+  angularError = (angularError < -PI) ? angularError + (2 * PI) : angularError;
+  return angularError;
+}
+
+void set_velocity(){
+
+    static bool angle_met = true;
+    static bool location_met = true;
+
+    double final_desired_heading_error = desired.pose.orientation.z - amcl.pose.pose.orientation.z;
+    double distanceError = getDistanceError();
+    double angularError = getAngularError();
+
+    if(abs(getDistanceError()) >= .05)
+        {
+        location_met = false;
+        }
+    else if (abs(getDistanceError()) < .03)
+        {
+        location_met = true;
+        }
+
+     angularError = (location_met == false) ? getAngularError() : final_desired_heading_error;
+    if (abs(angularError) > .15)
+        {
+         angle_met = false;
+        }
+    else if (abs(angularError) < .1)
+        {
+         angle_met = true;
+        }
+
+     if (waypointActive == true && angle_met == false)
+        {
+         cmd.angular.z = 0.3 * angularError;
+         cmd.linear.x = 0;
+         
+        }
+    else if (waypointActive == true && abs(getDistanceError()) >= .05 && location_met == false)
+        {
+         cmd.linear.x = 0.5 * getDistanceError();
+         cmd.angular.z = 0;
+         
+        }
+    else{
+        location_met = true;
+    }
+
+    if (location_met == true && abs(final_desired_heading_error) < .05) //goal reached!
+        {
+         waypointActive = false;
+         cmd.linear.x = 0;
+         cmd.angular.z = 0;
+        }
+     pubCmd.publish(cmd);
+}
 //this is where we'll keep the working _map data
 nav_msgs::OccupancyGrid::Ptr _map(new nav_msgs::OccupancyGrid());
 
@@ -87,7 +185,7 @@ cell goal;
 bool goalActive = false;
 
 //copy the supplied costmap to a new _map we can access freely
-void map_handler(const nav_msgs::OccupancyGridPtr &costmap) 
+void map_handler(const nav_msgs::OccupancyGridPtr &costmap)
 {
     static bool init_complete = false;
     //only do this stuff the first time a map is recieved.
@@ -105,8 +203,10 @@ void map_handler(const nav_msgs::OccupancyGridPtr &costmap)
         _map->info.origin.orientation.w = costmap->info.origin.orientation.w;
         _map->data.resize(costmap->data.size());
 
-        ROS_DEBUG_NAMED("Global path planning", "Map received. Initializing _map size %d x %d = %ld at resolution %f\nOrigin: %f, %f",
-                _map->info.width, _map->info.height, costmap->data.size(), _map->info.resolution, _map->info.origin.position.x, _map->info.origin.position.y);
+        cout << "Map recieved. Initializing _map size "
+             << _map->info.width << " x " << _map->info.height<<" = "<<costmap->data.size() <<"  at resolution "
+             << _map->info.resolution<<"\nOrigin: "
+             << _map->info.origin.position.x<<", "<< _map->info.origin.position.x<<endl;
 
 
         init_complete = true;
@@ -137,9 +237,9 @@ bool update_start_cell()
     static tf::TransformListener listener;
     tf::StampedTransform odom_base_tf;
 
-    if(listener.canTransform("odom","base_footprint", ros::Time(0), NULL)) 
+    if(listener.canTransform("odom","base_link", ros::Time(0), NULL))
     {
-        listener.lookupTransform("odom", "base_footprint", ros::Time(0), odom_base_tf); 
+        listener.lookupTransform("odom", "base_link", ros::Time(0), odom_base_tf);
 
         //dont forget that grid cell is pose in meters / map resolution
         start.x = odom_base_tf.getOrigin().x()/ map_resolution(_map);
@@ -155,7 +255,7 @@ bool update_start_cell()
     }
     else
     {
-        ROS_DEBUG_NAMED("Global path planning","UNABLE TO LOOKUP ODOM -> BASE_LINK TRANSFORM, no path planned");
+        cout<<"UNABLE TO LOOKUP ODOM -> BASE_LINK TRANSFORM, no path planned"<<endl;
         return false;
     }
 }
@@ -170,7 +270,7 @@ void set_goal(const geometry_msgs::PoseStamped &desiredPose)
     goal.index = getIndex(goal.x, goal.y, _map);
     goal.H = 0; //must set to zero to identify when found
     goalActive = true;
-    ROS_DEBUG_NAMED("Global path planning", "goal active set true");
+    cout << "goal active set true" << endl;
 }
 
 //check if cell with index recieved is in the supplied open or closed list
@@ -238,7 +338,7 @@ void optimize(vector<cell> &path)
     //starting at last goal (path[0]) and checking each waypoint until we find clear straight line to a cell
     while (obstacle_on_line == true && path[furthestFreeCell++].index != path.back().index)
     {
-       ROS_DEBUG_NAMED("Global path planning", "furthest free cell = %d and val = %d",  path[furthestFreeCell].index, (int)_map->data[path[furthestFreeCell].index]);
+        cout<<"furthest free cell = "<<path[furthestFreeCell].index<<" and val = "<<(int)_map->data[path[furthestFreeCell].index]<<endl;
         //we're going to iterate between points. set our start and endpoints for iterating
         int startX, endX, startY, endY;
         if (start.x <= path[furthestFreeCell].x)
@@ -299,7 +399,7 @@ void optimize(vector<cell> &path)
     {
         furthestFreeCell--;
     }
-    ROS_DEBUG_NAMED("Global path planning","FOUND FURTHEST STRAIGHT LINE FROM START TO waypoint at %d, %d = ", path[furthestFreeCell].x, path[furthestFreeCell].y );
+    cout << "FOUND FURTHEST STRAIGHT LINE FROM START TO waypoint at x, y = " << path[furthestFreeCell].x << ", " << path[furthestFreeCell].y << endl;
 
     //pop cells off waypoint list until we get to furthestFreeCell
     while (path[furthestFreeCell].index != path.back().index)
@@ -324,7 +424,7 @@ void publish_waypoint(cell nextWaypoint)
     waypoint.pose.orientation.z = nextWaypoint.theta;
     waypoint.pose.orientation.w = 0;
 
-    ROS_DEBUG_NAMED("Global path planning", "Publishing waypoint and theta %f, %f   %f", waypoint.pose.position.x, waypoint.pose.position.y, waypoint.pose.orientation.z);
+    cout << "Publishing waypoint and theta " << waypoint.pose.position.x << ", " << waypoint.pose.position.y << "   " << waypoint.pose.orientation.z << endl;
     pub.publish(waypoint);
 }
 
@@ -433,7 +533,7 @@ int find_path()
                     //when we run out of open elements, the must not be a path
                     if (open.size() == 0)
                     {
-                        ROS_DEBUG_NAMED("Global path planning", "NO PATH FOUND");
+                        cout << "NO PATH FOUND" << endl;
                         goalActive = false;
                         return -1;
                     }
@@ -538,24 +638,64 @@ int find_path()
     return nextWaypoint;
 }
 
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "local_path_planner");
+    ros::NodeHandle node;
 
-int main(int argc, char **argv){
-  ros::init(argc, argv, "local_planner");
-  ros::NodeHandle node;
+    //start tf::listener early so it has time to fill buffer
+    update_start_cell();
+    
 
-  ros::Subscriber scan_sub = node.subscribe<sensor_msgs::LaserScan>("scan",obstacle_avoidance); //obstacle avoidance
-  pubLaser = node.advertise<geometry_msgs::Twist>("cmd_vel",1);
+    subScan = node.subscribe("scan", 0, obstacle_avoidance); //obstacle_avoidance
+    subCurrentPose = node.subscribe("amcl_pose",10, &update_pose);
+    subDesiredPose = node.subscribe("waypoint_2d", 1, &updateGoal);
+    //subscribe to _map and goal location
+    subMap = node.subscribe("costmap", 0, map_handler);
+    subGoal = node.subscribe("goal_2d", 0, set_goal);
 
-  subGoal = node.subscribe<geometry_msgs::PoseStamped>("goal_2d",0,set_goal ); //set goal rviz:move_base_simple/goal -> initial_goal.cpp:handle_goal()->/goal_2d
-  subMap = node.subscribe<nav_msgs::OccupancyGrid>("costmap", 0,map_handler ); //subscirbe costmap topic from costmap_2d
+    //advertise publisher
+    pub = node.advertise<geometry_msgs::PoseStamped>("waypoint_2d", 0);
+    pathPub = node.advertise<nav_msgs::Path>("path", 0);
+    pubCmd = node.advertise<geometry_msgs::Twist>("cmd_vel",0);
+    ros::Rate loop_rate(1);
+    while (ros::ok())
+    {
+        if (goalActive == true)
+        {
+            if(update_start_cell() == false)
+            {
+                start.index = 0;
+                goal.index = 0;
+            }
+                 cout<< "start and goal = "
+                 << start.x << ", " << start.y << "......" << goal.x << ", " << goal.y << endl;
 
-  pub = node.advertise<geometry_msgs::PoseStamped>("waypoint_2d", 0); //publish arduino
-  pathPub = node.advertise<nav_msgs::Path>("local_path", 0); //visualize in rviz
+            //we have . Stop until we receive a new goal
+            if (start.index == goal.index)
+            {
+                cout << "Arrived, goalActive set false" << endl;
+                publish_waypoint(goal);
+                goalActive = false;
+            }
+            // keep updating path every loop_rate()
+            else
+            {
+                int nextWaypoint = find_path();
+                if (nextWaypoint == -1)
+                {
+                    cout << "NO PATH FOUND" << endl;
+                    goalActive = false;
+                }
+            }
+        }
+        ros::spinOnce();
+        if(desired.pose.position.x != -1)
+          {
+            set_velocity();
+          }
+        loop_rate.sleep();
+    }
 
-  ros::Rate loop_rate(1);
-  while (ros::ok()){
-    ros::spinOnce();
-    loop_rate.sleep();
-  }
-  return 0;
+    return 0;
 }

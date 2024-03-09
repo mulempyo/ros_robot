@@ -209,8 +209,10 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-add_executable(path_planner src/global_path_planner.cpp)
-target_link_libraries(path_planner ${catkin_LIBRARIES})
+add_executable(global_path_planner src/global_path_planner.cpp)
+target_link_libraries(global_path_planner ${catkin_LIBRARIES})
 
-add_executable(local_planner src/local_path_planner.cpp)
-target_link_libraries(local_planner ${catkin_LIBRARIES})
+add_executable(local_path_planner src/local_path_planner.cpp)
+target_link_libraries(local_path_planner ${catkin_LIBRARIES})
+
+

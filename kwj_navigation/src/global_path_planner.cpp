@@ -63,7 +63,7 @@ cell goal;
 bool goalActive = false;
 
 //copy the supplied costmap to a new _map we can access freely
-void map_handler(const nav_msgs::OccupancyGridPtr &costmap) 
+void map_handler(const nav_msgs::OccupancyGridPtr &costmap)
 {
     static bool init_complete = false;
     //only do this stuff the first time a map is recieved.
@@ -81,8 +81,10 @@ void map_handler(const nav_msgs::OccupancyGridPtr &costmap)
         _map->info.origin.orientation.w = costmap->info.origin.orientation.w;
         _map->data.resize(costmap->data.size());
 
-        ROS_DEBUG_NAMED("Global path planning", "Map received. Initializing _map size %d x %d = %ld at resolution %f\nOrigin: %f, %f",
-                _map->info.width, _map->info.height, costmap->data.size(), _map->info.resolution, _map->info.origin.position.x, _map->info.origin.position.y);
+        cout << "Map recieved. Initializing _map size "
+             << _map->info.width << " x " << _map->info.height<<" = "<<costmap->data.size() <<"  at resolution "
+             << _map->info.resolution<<"\nOrigin: "
+             << _map->info.origin.position.x<<", "<< _map->info.origin.position.x<<endl;
 
 
         init_complete = true;
@@ -113,9 +115,9 @@ bool update_start_cell()
     static tf::TransformListener listener;
     tf::StampedTransform odom_base_tf;
 
-    if(listener.canTransform("odom","base_footprint", ros::Time(0), NULL)) 
+    if(listener.canTransform("odom","base_link", ros::Time(0), NULL))
     {
-        listener.lookupTransform("odom", "base_footprint", ros::Time(0), odom_base_tf); 
+        listener.lookupTransform("odom", "base_link", ros::Time(0), odom_base_tf);
 
         //dont forget that grid cell is pose in meters / map resolution
         start.x = odom_base_tf.getOrigin().x()/ map_resolution(_map);
@@ -131,7 +133,7 @@ bool update_start_cell()
     }
     else
     {
-        ROS_DEBUG_NAMED("Global path planning","UNABLE TO LOOKUP ODOM -> BASE_LINK TRANSFORM, no path planned");
+        cout<<"UNABLE TO LOOKUP ODOM -> BASE_LINK TRANSFORM, no path planned"<<endl;
         return false;
     }
 }
@@ -146,7 +148,7 @@ void set_goal(const geometry_msgs::PoseStamped &desiredPose)
     goal.index = getIndex(goal.x, goal.y, _map);
     goal.H = 0; //must set to zero to identify when found
     goalActive = true;
-    ROS_DEBUG_NAMED("Global path planning", "goal active set true");
+    cout << "goal active set true" << endl;
 }
 
 //check if cell with index recieved is in the supplied open or closed list
@@ -214,7 +216,7 @@ void optimize(vector<cell> &path)
     //starting at last goal (path[0]) and checking each waypoint until we find clear straight line to a cell
     while (obstacle_on_line == true && path[furthestFreeCell++].index != path.back().index)
     {
-       ROS_DEBUG_NAMED("Global path planning", "furthest free cell = %d and val = %d",  path[furthestFreeCell].index, (int)_map->data[path[furthestFreeCell].index]);
+        cout<<"furthest free cell = "<<path[furthestFreeCell].index<<" and val = "<<(int)_map->data[path[furthestFreeCell].index]<<endl;
         //we're going to iterate between points. set our start and endpoints for iterating
         int startX, endX, startY, endY;
         if (start.x <= path[furthestFreeCell].x)
@@ -275,7 +277,7 @@ void optimize(vector<cell> &path)
     {
         furthestFreeCell--;
     }
-    ROS_DEBUG_NAMED("Global path planning","FOUND FURTHEST STRAIGHT LINE FROM START TO waypoint at %f, %f = ", path[furthestFreeCell].x, path[furthestFreeCell].y );
+    cout << "FOUND FURTHEST STRAIGHT LINE FROM START TO waypoint at x, y = " << path[furthestFreeCell].x << ", " << path[furthestFreeCell].y << endl;
 
     //pop cells off waypoint list until we get to furthestFreeCell
     while (path[furthestFreeCell].index != path.back().index)
@@ -300,7 +302,7 @@ void publish_waypoint(cell nextWaypoint)
     waypoint.pose.orientation.z = nextWaypoint.theta;
     waypoint.pose.orientation.w = 0;
 
-    ROS_DEBUG_NAMED("Global path planning", "Publishing waypoint and theta %f, %f   %f", waypoint.pose.position.x, waypoint.pose.position.y, waypoint.pose.orientation.z);
+    cout << "Publishing waypoint and theta " << waypoint.pose.position.x << ", " << waypoint.pose.position.y << "   " << waypoint.pose.orientation.z << endl;
     pub.publish(waypoint);
 }
 
@@ -409,7 +411,7 @@ int find_path()
                     //when we run out of open elements, the must not be a path
                     if (open.size() == 0)
                     {
-                        ROS_DEBUG_NAMED("Global path planning", "NO PATH FOUND");
+                        cout << "NO PATH FOUND" << endl;
                         goalActive = false;
                         return -1;
                     }
@@ -516,15 +518,15 @@ int find_path()
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "path_planner");
+    ros::init(argc, argv, "global_path_planner");
     ros::NodeHandle node;
 
     //start tf::listener early so it has time to fill buffer
     update_start_cell();
 
     //subscribe to _map and goal location
-    subMap = node.subscribe<nav_msgs::OccupancyGrid>("costmap", 0, map_handler);
-    subGoal = node.subscribe<geometry_msgs::PoseStamped>("goal_2d", 0, set_goal);
+    subMap = node.subscribe("costmap", 0, map_handler);
+    subGoal = node.subscribe("goal_2d", 0, set_goal);
 
     //advertise publisher
     pub = node.advertise<geometry_msgs::PoseStamped>("waypoint_2d", 0);
@@ -540,11 +542,13 @@ int main(int argc, char **argv)
                 start.index = 0;
                 goal.index = 0;
             }
-                 ROS_DEBUG_NAMED("Global path planning", "start and goal = %f, %f......%f, %f", start.x, start.y, goal.x, goal.y);
+                 cout<< "start and goal = "
+                 << start.x << ", " << start.y << "......" << goal.x << ", " << goal.y << endl;
+
             //we have . Stop until we receive a new goal
             if (start.index == goal.index)
             {
-                ROS_DEBUG_NAMED("Global path planning", "Arrived, goalActive set false");
+                cout << "Arrived, goalActive set false" << endl;
                 publish_waypoint(goal);
                 goalActive = false;
             }
@@ -554,7 +558,7 @@ int main(int argc, char **argv)
                 int nextWaypoint = find_path();
                 if (nextWaypoint == -1)
                 {
-                    ROS_DEBUG_NAMED("Global path planning", "NO PATH FOUND");
+                    cout << "NO PATH FOUND" << endl;
                     goalActive = false;
                 }
             }
@@ -565,5 +569,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-
-
