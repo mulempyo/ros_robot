@@ -41,12 +41,15 @@ long currentMillis = 0;
 void right_wheel_tick() {
    
   int val = digitalRead(ENC_IN_RIGHT_B);
-  if(val>0){
+
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+    if(val>0){
     posi++;
   }
   else{
     posi--;
   }
+   }
   if (val == LOW) {
     Direction_right = false; 
   }
@@ -79,12 +82,14 @@ void right_wheel_tick() {
 void left_wheel_tick() {
    
   int val = digitalRead(ENC_IN_LEFT_B);
-  if(val>0){
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+    if(val>0){
     posi++;
   }
   else{
     posi--;
   }
+   }
   if (val == LOW) {
     Direction_left = true; 
   }
