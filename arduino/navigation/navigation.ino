@@ -133,7 +133,7 @@ void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
   cmd = cmdVel;
   lastCmdVelReceived = (millis()/1000.0); 
 
- if(cmd.angular.z > 0){ //left
+  if(cmd.angular.z > 0){ //left
     if(cmd.linear.x > 0){ //straight and left
       analogWrite(9,pwr_left);
       analogWrite(10,pwr_right*1.2);
@@ -175,12 +175,13 @@ void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
       lastCmdVelReceived = 0; //stop
     }
   }
+   
  pwr_left = constrain(pwr_left,0,255);
  pwr_right = constrain(pwr_right,0,255);
 }
  
 void set_pwm_values() {
-   int target = 80;
+   int target = 60;
    long prevT = 0;
    long currT = micros();
    float deltaT = ((float)(currT - prevT))/(1.0e6);
@@ -230,8 +231,7 @@ void set_pwm_values() {
     pwr_left = constrain(pwr_left,0,255);
     pwr_right = constrain(pwr_right,0,255);    
 
-
-  if(cmd.angular.z > 0){ //left
+   if(cmd.angular.z > 0){ //left
     if(cmd.linear.x > 0){ //straight and left
       teleop(1,0,0,1);
     }
@@ -266,6 +266,7 @@ void set_pwm_values() {
       teleop(0,0,0,0); //stop
     }
   }
+  
 }
 ros::Subscriber<geometry_msgs::Twist> subCmdVel("cmd_vel", &calc_pwm_values );
  

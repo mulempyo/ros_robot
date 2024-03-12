@@ -18,6 +18,7 @@
 #include <math.h>
 #include <iostream>
 #include <sensor_msgs/LaserScan.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 
 using namespace std;
@@ -26,7 +27,8 @@ float PI = 3.141592;
 bool waypointActive = false;
 
 //create our subscriber and publisher.
-ros::Subscriber subMap, subPose, subGoal, subScan, subCurrentPose, subDesiredPose;
+ros::Subscriber subMap, subPose, subGoal, subScan, subCurrentPose, subDesiredPose, subMoveGoal;
+
 ros::Publisher pub;
 ros::Publisher pathPub;
 ros::Publisher pubCmd;
@@ -35,8 +37,6 @@ geometry_msgs::Twist cmd;
 geometry_msgs::PoseStamped desired;
 geometry_msgs::PoseWithCovarianceStamped amcl;
 
-//라이다는 base_link에서 x방향으로 0.055m, y방향으로 0.025m, z방향으로 0.18m만큼 떨어져 있다.
-//pose를 로봇의 base_link위치를, xOffset,yOffset은 라이다의 위치를,xCoordinate,yCoordinate는 로봇으로부터 장애물의 위치를 나타낸다.
 void obstacle_avoidance(const sensor_msgs::LaserScan& laserScan)
 {
  //double real_angle = laserScan.angle_min + (index*laserScan.angle_increment); -> ranges의 인덱스에서의 실제 각도를 나타냅니다.
@@ -59,15 +59,15 @@ void obstacle_avoidance(const sensor_msgs::LaserScan& laserScan)
         cmd.linear.x = 1.0; //장애물이 없다면 계속해서 진직한다.
         cmd.angular.z = 0;
     }
-    pubCmd.publish(cmd);
+    
 
 }
 
-void update_pose(const geometry_msgs::PoseWithCovarianceStamped &currentAmclPose)
+void update_pose(const geometry_msgs::PoseWithCovarianceStamped &currentAmcl)
 {
-    amcl.pose.pose.position.x = currentAmclPose.pose.pose.position.x;
-    amcl.pose.pose.position.y = currentAmclPose.pose.pose.position.y;
-    amcl.pose.pose.orientation.z = currentAmclPose.pose.pose.orientation.z;
+    amcl.pose.pose.position.x = currentAmcl.pose.pose.position.x;
+    amcl.pose.pose.position.y = currentAmcl.pose.pose.position.y;
+    amcl.pose.pose.orientation.z = currentAmcl.pose.pose.orientation.z;
 }
 
 void updateGoal(const geometry_msgs::PoseStamped &desiredPose) {
@@ -144,7 +144,6 @@ void set_velocity(){
          cmd.linear.x = 0;
          cmd.angular.z = 0;
         }
-     pubCmd.publish(cmd);
 }
 //this is where we'll keep the working _map data
 nav_msgs::OccupancyGrid::Ptr _map(new nav_msgs::OccupancyGrid());
@@ -637,7 +636,9 @@ int find_path()
     // goalActive = false;
     return nextWaypoint;
 }
-
+void pubCmdFunc(const geometry_msgs::PoseStamped& goal){
+	pubCmd.publish(cmd);
+}
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "local_path_planner");
@@ -647,7 +648,8 @@ int main(int argc, char **argv)
     update_start_cell();
     
 
-    subScan = node.subscribe("scan", 0, obstacle_avoidance); //obstacle_avoidance
+    subScan = node.subscribe("scan", 1, obstacle_avoidance); //obstacle_avoidance   
+    subMoveGoal = node.subscribe("move_base_simple/goal",0, &pubCmdFunc);
     subCurrentPose = node.subscribe("amcl_pose",10, &update_pose);
     subDesiredPose = node.subscribe("waypoint_2d", 1, &updateGoal);
     //subscribe to _map and goal location
@@ -656,7 +658,7 @@ int main(int argc, char **argv)
 
     //advertise publisher
     pub = node.advertise<geometry_msgs::PoseStamped>("waypoint_2d", 0);
-    pathPub = node.advertise<nav_msgs::Path>("path", 0);
+    pathPub = node.advertise<nav_msgs::Path>("local_path", 0);
     pubCmd = node.advertise<geometry_msgs::Twist>("cmd_vel",0);
     ros::Rate loop_rate(1);
     while (ros::ok())
