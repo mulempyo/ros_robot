@@ -181,7 +181,7 @@ void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
 }
  
 void set_pwm_values() {
-   int target = 60;
+   int target = 100;
    long prevT = 0;
    long currT = micros();
    float deltaT = ((float)(currT - prevT))/(1.0e6);

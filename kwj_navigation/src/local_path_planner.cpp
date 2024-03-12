@@ -68,12 +68,14 @@ void update_pose(const geometry_msgs::PoseWithCovarianceStamped &currentAmcl)
     amcl.pose.pose.position.x = currentAmcl.pose.pose.position.x;
     amcl.pose.pose.position.y = currentAmcl.pose.pose.position.y;
     amcl.pose.pose.orientation.z = currentAmcl.pose.pose.orientation.z;
+    amcl.pose.pose.orientation.w = currentAmcl.pose.pose.orientation.w;
 }
 
 void updateGoal(const geometry_msgs::PoseStamped &desiredPose) {
   desired.pose.position.x = desiredPose.pose.position.x;
   desired.pose.position.y = desiredPose.pose.position.y;
   desired.pose.orientation.z = desiredPose.pose.orientation.z;
+  desired.pose.orientation.w = desiredPose.pose.orientation.w;
   waypointActive = true;
   desired = desiredPose;
 }
@@ -636,9 +638,12 @@ int find_path()
     // goalActive = false;
     return nextWaypoint;
 }
-void pubCmdFunc(const geometry_msgs::PoseStamped& goal){
-	pubCmd.publish(cmd);
+void pubCmdFunc(const geometry_msgs::PoseStamped& goal){ 
+     pubCmd.publish(cmd);
 }
+
+
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "local_path_planner");
@@ -650,6 +655,7 @@ int main(int argc, char **argv)
 
     subScan = node.subscribe("scan", 1, obstacle_avoidance); //obstacle_avoidance   
     subMoveGoal = node.subscribe("move_base_simple/goal",0, &pubCmdFunc);
+
     subCurrentPose = node.subscribe("amcl_pose",10, &update_pose);
     subDesiredPose = node.subscribe("waypoint_2d", 1, &updateGoal);
     //subscribe to _map and goal location
