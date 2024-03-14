@@ -56,4 +56,4 @@ ROS
 
 >Distribution: Melodic
 
->rosserial, rosserial_python, rosserial_arduino, gmapping, hector_slam, navigation, myahrs_driver, teleop_twist_keyboard, ydlidar_ros_driver, YDLidar-SDK
+>ROS Packages: rosserial, rosserial_python, rosserial_arduino, gmapping, hector_slam, navigation, myahrs_driver, teleop_twist_keyboard, ydlidar_ros_driver, YDLidar-SDK, udrf, joint_state_publisher, robot_state_publisher, amcl, costmap_2d
