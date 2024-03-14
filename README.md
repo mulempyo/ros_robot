@@ -26,7 +26,7 @@ Micro Controller Unit
 
 Motor
 
->JGB37-520 x2
+>JGB37-520 encoder motor x2
 
 Motor Driver
 
@@ -60,9 +60,9 @@ ROS
 
 >Distribution: Melodic
 
->ROS Packages: rosserial, rosserial_python, rosserial_arduino, gmapping, hector_slam, navigation, myahrs_driver, teleop_twist_keyboard, ydlidar_ros_driver, YDLidar-SDK, urdf, joint_state_publisher, robot_state_publisher, amcl, costmap_2d
+>ROS Packages: rosserial, rosserial_python, rosserial_arduino, gmapping, hector_slam, navigation, myahrs_driver, teleop_twist_keyboard, ydlidar_ros_driver, YDLidar-SDK, urdf, joint_state_publisher, robot_state_publisher, amcl, costmap_2d, robot_pose_ekf
 
-<h2>Launch</h2>
+<h2>How To Launch</h2>
 
 roscore, rosrun, roslaunch같은 ROS명령어를 사용하기 위해서는 항상 터미널마다 다음 단계를 따라야 합니다.
 
@@ -130,3 +130,6 @@ rqt_graph는 현재 실행되는 노드,토픽들을 그래프로 보여줍니�
 
 <h2>코드 설명</h2>
 
+>PID_publish_ticks_teleop.ino: 왼쪽 바퀴, 오른쪽 바퀴의 tick을 퍼블리시하고 cmd_vel토픽을 서브스크라이브 합니다. 그리고 정확한 움직임을 위해 모터 PWM값을 PID제어를 합니다. 움직임은 직진, 후진, 제자리에서 왼쪽,오른쪽 회전입니다.
+
+>navigation.ino: 왼쪽 바퀴, 오른쪽 바퀴의 tick을 퍼블리시하고 cmd_vel토픽을 서브스크라이브합니다. cmd_vel 서브스크라이버 콜백 함수에서는 cmd_vel 토픽을 서브스크라이브하면 lastCmdVelReceived에 
