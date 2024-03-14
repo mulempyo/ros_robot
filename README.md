@@ -48,3 +48,12 @@ Standoff
 
 >M3,M4
 
+<h2>소프트웨어</h2>
+
+Ubuntu
+
+ROS
+
+>Distribution: Melodic
+
+>rosserial, rosserial_python, rosserial_arduino, gmapping, hector_slam, navigation, myahrs_driver, teleop_twist_keyboard, ydlidar_ros_driver, YDLidar-SDK
