@@ -52,7 +52,13 @@ Networkcard
 
 >ipTIME-N100 (Linux 지원)
 
->로봇 CAD 파일
+로봇 CAD 파일
+
+>1층: 1st floor.obj
+
+>2층: 2nd floor.obj
+
+>3층: Lidar Pro.obj
 
 <h2>소프트웨어</h2>
 
