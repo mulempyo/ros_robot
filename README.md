@@ -38,7 +38,7 @@ Battery
 
 Lidar
 
->Ydlidar X4 -> change Ydlidar X4 Pro
+>YDLidar X4 -> change YDLidar X4 Pro
 
 Imu
 
@@ -92,7 +92,7 @@ roscore, rosrun, roslaunch같은 ROS명령어를 사용하기 위해서는 항�
 
 >$ rviz
 
->만약 맵을 다 그렸다면 터미널을 키고 다음 단계를 따라야 합니다.
+>만약 맵을 다 그렸다면 맵을 저장하기 위해서는 터미널을 키고 다음 단계를 따라야 합니다. 
 
 >$ rosrun map_server map_saver
 
@@ -106,7 +106,7 @@ roscore, rosrun, roslaunch같은 ROS명령어를 사용하기 위해서는 항�
 
 >$ rviz
 
->만약 맵을 다 그렸다면 터미널을 키고 다음 단계를 따라야 합니다.
+>만약 맵을 다 그렸다면 맵을 저장하기 위해서는 터미널을 키고 다음 단계를 따라야 합니다.
 
 >$ rosrun map_server map_saver
 
@@ -128,12 +128,24 @@ rqt_graph는 현재 실행되는 노드,토픽들을 그래프로 보여줍니�
 
 >$ rosrun tf view_frames
 
-<h2>코드 설명</h2>
+<h2>참고</h2>
 
->PID_publish_ticks_teleop.ino: 왼쪽 바퀴, 오른쪽 바퀴의 tick을 퍼블리시하고 cmd_vel토픽을 서브스크라이브 합니다. 그리고 정확한 움직임을 위해 모터 PWM값을 PID제어를 합니다. 움직임은 직진, 후진, 제자리에서 왼쪽,오른쪽 회전입니다.
+DIY 로봇을 만들며 참고한 사이트와 책
 
->navigation.ino: 왼쪽 바퀴, 오른쪽 바퀴의 tick을 퍼블리시하고 cmd_vel토픽을 서브스크라이브합니다. cmd_vel 서브스크라이버 콜백 함수 calc_pwm_values에서는 cmd_vel 토픽을 서브스크라이브하면 lastCmdVelReceived에 (millis()/1000.0)을 대입함으로써 정지 상태에서 벗어납니다. cmd.linear.x 와 cmd.angular.z값에 따라 모터 PWM값을 달리합니다. set_pwm_values함수에서는 loop함수 안에서 계속 실행되면서 모터 PWM값을 PID제어 합니다. 방향 조절을 위해 cmd.linear.x와 cmd.angular.z값에 따라 teleop함수를 이용하여 방향조절 HIGH,LOW를 수행합니다.
+>https://github.com/lbrombach/practical_robot
 
->
+>https://github.com/zeta0707/jessicar2
+
+>https://github.com/ROBOTIS-GIT/turtlebot3
+
+>https://automaticaddison.com/how-to-set-up-the-ros-navigation-stack-on-a-robot/
+
+>book: Practical Robotics in C++:: Build and Program Real Autonomous Robots Using Raspberry Pi,Brombach, Lloyd,ISBN13:9789389423464, ISBN10:9389423465
+
+<h2>Repository 변화</h2>
+
+>https://github.com/mulempyo/my_first_ros_robot -> https://github.com/mulempyo/64robot -> https://github.com/mulempyo/ros_robot
+
+
 
 
