@@ -64,6 +64,8 @@ Networkcard
 
 Ubuntu
 
+CAD: Blender
+
 ROS
 
 >Distribution: Melodic
