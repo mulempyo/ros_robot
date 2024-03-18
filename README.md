@@ -52,6 +52,8 @@ Networkcard
 
 >ipTIME-N100 (Linux 지원)
 
+>로봇 CAD 파일
+
 <h2>소프트웨어</h2>
 
 Ubuntu
