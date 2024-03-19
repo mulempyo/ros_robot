@@ -52,6 +52,8 @@ Networkcard
 
 >ipTIME-N100 (Linux 지원)
 
+캐스터 휠
+
 로봇 CAD 파일
 
 >1층: 1st floor.obj
