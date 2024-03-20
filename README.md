@@ -87,15 +87,15 @@ ROS
 
 roscore, rosrun, roslaunch같은 ROS명령어를 사용하기 위해서는 항상 터미널마다 다음 단계를 따라야 합니다.
 
->$ source /opt/ros/melodic/setup.bash
+```$ source /opt/ros/melodic/setup.bash ```
 
->$ cd catkin_ws
+```$ cd catkin_ws```
 
->$ source ./devel/setup.bash
+```$ source ./devel/setup.bash ```
 
 >만약 catkin_ws 워크스페이스 안에 코드를 추가하거나 변경했을 때 워크스페이스 안의 모든 코드를 컴파일 하는 과정이 필요합니다. 그 때에는 $ cd catkin_ws 다음 명령어를 추가해야 합니다.
 
->$ catkin_make
+```$ catkin_make```
 
 <h3>Arduino</h3>
 
@@ -105,43 +105,43 @@ roscore, rosrun, roslaunch같은 ROS명령어를 사용하기 위해서는 항�
 
 <h3>Gmapping</h3>
 
->$ roscore
+```$ roscore```
 
->$ roslaunch kwj_slam gmapping.launch
+```$ roslaunch kwj_slam gmapping.launch```
 
->$ rosrun teleop_twist_keyboard teleop_twist_keyboard.py
+```$ rosrun teleop_twist_keyboard teleop_twist_keyboard.py```
 
->$ rviz
+```$ rviz```
 
 >만약 맵을 다 그렸다면 맵을 저장하기 위해서는 터미널을 키고 다음 단계를 따라야 합니다. 
 
->$ rosrun map_server map_saver
+```$ rosrun map_server map_saver```
 
 <h3>Hector_slam</h3>
 
->$ roscore
+```$ roscore```
 
->$ roslaunch kwj_slam hector_slam.launch
+```$ roslaunch kwj_slam hector_slam.launch```
 
->$ rosrun teleop_twist_keyboard teleop_twist_keyboard.py
+```$ rosrun teleop_twist_keyboard teleop_twist_keyboard.py```
 
->$ rviz
+```$ rviz```
 
 >만약 맵을 다 그렸다면 맵을 저장하기 위해서는 터미널을 키고 다음 단계를 따라야 합니다.
 
->$ rosrun map_server map_saver
+```$ rosrun map_server map_saver```
 
 <h3>Navigation</h3>
 
->$ roscore
+```$ roscore```
 
->$ roslaunch kwj_navigation move_base.launch
+```$ roslaunch kwj_navigation move_base.launch```
 
 <h3>rqt_graph</h3>
 
 rqt_graph는 현재 실행되는 노드,토픽들을 그래프로 보여줍니다.
 
->$ rosrun rqt_graph rqt_graph
+```$ rosrun rqt_graph rqt_graph```
 
 <h4> SLAM rqt_graph 실행 결과 (TF 연결 전)</h4>
 
@@ -163,7 +163,7 @@ rqt_graph는 현재 실행되는 노드,토픽들을 그래프로 보여줍니�
 
 현재 로봇의 TF를 그려줍니다.
 
->$ rosrun tf view_frames
+```$ rosrun tf view_frames```
 
 이 프로젝트에서 SLAM,Navigation 수행 전 rviz에서 2d estimate pose를 이용하여 tf를 연결시켜야 합니다.
 
