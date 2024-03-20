@@ -1,5 +1,5 @@
 <H1>KWJ ROBOT</H1>
-나의 첫번째 ROS를 이용한 DIY로봇    
+나의 첫번째 ROS를 이용한 DIY로봇  
 
 <h2>기능</h2> 
 SLAM  
@@ -62,6 +62,15 @@ Networkcard
 
 >3층: Lidar Pro.obj
 
+<h2>하드웨어 연결</h2>
+
+<h3>1층</h3>
+
+<img src = "1층 연결.png" />
+
+<h3>2층,3층</h3>
+
+<img src = "2,3층 연결.png" />
 <h2>소프트웨어</h2>
 
 Ubuntu
