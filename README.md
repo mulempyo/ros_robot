@@ -143,11 +143,45 @@ rqt_graph는 현재 실행되는 노드,토픽들을 그래프로 보여줍니�
 
 >$ rosrun rqt_graph rqt_graph
 
+<h4> SLAM rqt_graph 실행 결과 (TF 연결 전)</h4>
+
+<img src ="no estimate rqt_graph.png"/>
+
+<h4>SLAM rqt_graph 실행 결과 (TF 연결 후)</h4>
+
+<img src ="yes estimate rqt_graph.png"/>
+
+<h4>Navigation rqt_graph 실행 결과 (TF 연결 전)</h4>
+
+<img src="no 2d estimate navi rqt.png"/>
+
+<h4>Navigation rqt_graph 실행 결과 (TF 연결 후)</h4>
+
+<img src ="yes estimate nav rqt.png"/>
+
 <h3> TF </h3>
 
 현재 로봇의 TF를 그려줍니다.
 
 >$ rosrun tf view_frames
+
+이 프로젝트에서 SLAM,Navigation 수행 전 rviz에서 2d estimate pose를 이용하여 tf를 연결시켜야 합니다.
+
+<h4>SLAM TF 연결 전</h4>
+
+<img src ="no estimate tf.png"/>
+
+<h4>SLAM TF 연결 후</h4>
+
+<img src ="yes estimate tf.png"/>
+
+<h4>Navigation TF 연결 전</h4>
+
+<img src="no etimate navigation.png"/>
+
+<h4>Navigation TF 연결 후</h4>
+
+<img src = "yes_estimate navigation.png"/>
 
 <h2>참고</h2>
 
