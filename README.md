@@ -56,11 +56,11 @@ Networkcard
 
 로봇 CAD 파일
 
->1층: 1st floor.obj
+>1층: <img src = "1층.stl"/>
 
->2층: 2nd floor.obj
+>2층: <img src = "2층.stl"/>
 
->3층: Lidar Pro.obj
+>3층: <img src = "Lidar Pro.stl"/>
 
 <h2>하드웨어 연결</h2>
 
