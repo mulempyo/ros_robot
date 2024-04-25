@@ -17,7 +17,7 @@ Path Planning
 
 <h2>하드웨어</h2>
 
-PCB
+SBC
 
 >Jetson Nano Developer Kit 4GB, +cooling pan
 
