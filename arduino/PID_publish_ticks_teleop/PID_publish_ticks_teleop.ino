@@ -9,6 +9,10 @@
 #define ENC_IN_RIGHT_A 3
 #define ENC_IN_LEFT_B 4
 #define ENC_IN_RIGHT_B 11
+
+#define WHEEL_DIAMETER 6.7 //unit:cm
+#define LEFT_TICKS_PER_REVOLUTION 1700 //tick publish in 1 cycle
+#define RIGHT_TICKS_PER_REVOLUTION 1800 //tick publish in 1 cycle
 ros::NodeHandle nh;
 
 float pwr_left;
@@ -19,7 +23,11 @@ boolean Direction_right = true;
 
 const int encoder_minimum = -32768;
 const int encoder_maximum = 32767;
-volatile int posi = 0;
+volatile int left_posi = 0;
+volatile int right_posi = 0;
+int left_pos = 0;
+int right_pos = 0;
+
 long prevT = 0;
 float left_eprev= 0;
 float right_eprev = 0;
@@ -37,6 +45,10 @@ const int interval = 30;
 long previousMillis = 0;
 long currentMillis = 0;
 
+double left_velocity = (cmd_vel.linear.x - (cmd_vel.angular.z*21.2/2.0))/3.35;
+double right_velocity = (cmd_vel.linear.x + (cmd_vel.angular.z*21.2/2.0))/3.35;
+float left_out;
+float right_out;
 
 void right_wheel_tick() {
    
@@ -44,10 +56,10 @@ void right_wheel_tick() {
 
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
     if(val>0){
-    posi++;
+    right_posi++;
   }
   else{
-    posi--;
+    right_posi--;
   }
    }
   if (val == LOW) {
@@ -63,7 +75,8 @@ void right_wheel_tick() {
       right_wheel_tick_count.data = encoder_minimum;
     }
     else {
-      right_wheel_tick_count.data++; 
+      ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+      right_wheel_tick_count.data++; }
       
     }    
   }
@@ -72,7 +85,8 @@ void right_wheel_tick() {
       right_wheel_tick_count.data = encoder_maximum;
     }
     else {
-      right_wheel_tick_count.data--;  
+      ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+      right_wheel_tick_count.data--;  }
       
     }  
   }
@@ -84,10 +98,10 @@ void left_wheel_tick() {
   int val = digitalRead(ENC_IN_LEFT_B);
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
     if(val>0){
-    posi++;
+    left_posi++;
   }
   else{
-    posi--;
+    left_posi--;
   }
    }
   if (val == LOW) {
@@ -102,7 +116,8 @@ void left_wheel_tick() {
       left_wheel_tick_count.data = encoder_minimum;
     }
     else {
-      left_wheel_tick_count.data++;  
+      ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+      left_wheel_tick_count.data++;  }
      
     }  
   }
@@ -111,13 +126,36 @@ void left_wheel_tick() {
       left_wheel_tick_count.data = encoder_maximum;
     }
     else {
-      left_wheel_tick_count.data--; 
+      ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+      left_wheel_tick_count.data--; }
      
     }  
   }
 }
 
+float leftSpeed() {
+    long previousTime = 0;
+    unsigned long currentTime = millis();
+    unsigned long deltaTime = currentTime - previousTime;  
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+    left_pos = left_posi;
+   }
+    float left_speed = (left_pos / LEFT_TICKS_PER_REVOLUTION)*PI*WHEEL_DIAMETER/((float) deltaTime * 1000);  
+    previousTime = currentTime;
+    return left_speed;
+}
 
+float rightSpeed() {
+    long previousTime = 0;
+    unsigned long currentTime = millis();
+    unsigned long deltaTime = currentTime - previousTime;  
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+    right_pos = right_posi;
+   }
+    float right_speed = (right_pos / RIGHT_TICKS_PER_REVOLUTION)*PI*WHEEL_DIAMETER/((float) deltaTime * 1000);  
+    previousTime = currentTime;
+    return right_speed;
+}
 
 void teleop(int an1 ,int an2 ,int an3 ,int an4){
   digitalWrite(5, an1);
@@ -127,27 +165,25 @@ void teleop(int an1 ,int an2 ,int an3 ,int an4){
 }
 
 void updateVelocity(){
-   int target = 80;
-   float kp_left = 3.1;
-   float ki_left = 1.2;
-   float kd_left = 1.2;
-
-   float kp_right = 3.1;
-   float ki_right = 2.0;
-   float kd_right = 1.02;
    
-   long currT = micros();
-   float deltaT = ((float)(currT - prevT))/(1.0e6);
+   int target = 7.5; //target velocity pwm:90 -> 60cm/8s -> 7.5 cm/s 
+   
+   float kp_left = 0.1;
+   float ki_left = 0.000000000001;
+   float kd_left = 0.1;
+
+   float kp_right = 0.12;
+   float ki_right = 0.0000000000018;
+   float kd_right = 0.22;
+   
+   long prevT = 0;
+   long currT = millis();
+   float deltaT = ((float)(currT - prevT))*1000;
    prevT = currT;
+   
+   int left_e = target-leftSpeed();
+   int right_e = target-rightSpeed();
 
-   
-   int pos = 0;
-   ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
-    pos = posi;
-   }
-   
-   int left_e = pos-target;
-   int right_e = pos-target;
    
    float left_debt = (left_e-left_eprev)/deltaT;
    float right_debt = (right_e-right_eprev)/deltaT;
@@ -164,9 +200,8 @@ void updateVelocity(){
    pwr_left = fabs(u_left);
    pwr_right = fabs(u_right);
    
-   pwr_left = constrain(pwr_left,0,255);
-   pwr_right = constrain(pwr_right,0,255);
-   
+   pwr_left = constrain(pwr_left,80,255);
+   pwr_right = constrain(pwr_right,80,255); 
 }
 
 
@@ -206,7 +241,8 @@ void loop() {
 nh.spinOnce();
 currentMillis = millis();
 updateVelocity();
-
+leftSpeed();
+rightSpeed();
   if (currentMillis - previousMillis > interval) {
     previousMillis = currentMillis;
     leftPub.publish( &left_wheel_tick_count );
@@ -221,7 +257,7 @@ updateVelocity();
   if(a > 0 && c == 0){ //straight
   analogWrite(9,pwr_left);
   analogWrite(10,pwr_right);
-    teleop(1,0,0,1);
+    teleop(1,0,0,1); 
   }
   else if(a < 0 && c == 0){ //back
   analogWrite(9,pwr_left);
@@ -234,13 +270,17 @@ updateVelocity();
     teleop(0,0,0,0);
   }
   else if(a == 0 && c > 0){ //left
-  analogWrite(9,80);
-  analogWrite(10,80);
+  right_out = right_velocity + pwr_right; 
+  left_out = left_velocity + pwr_left;
+  analogWrite(9,left_out); 
+  analogWrite(10,right_out);
     teleop(0,1,0,1);
   }
   else if(a == 0 && c < 0){ //right
-  analogWrite(9,80);
-  analogWrite(10,80);
+  right_out = right_velocity + pwr_right; 
+  left_out = left_velocity + pwr_left;
+  analogWrite(9,left_out);
+  analogWrite(10,right_out);
     teleop(1,0,1,0);
   }
 

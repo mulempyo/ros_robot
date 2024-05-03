@@ -3,7 +3,6 @@
 #include <std_msgs/Int16.h>
 #include <geometry_msgs/Twist.h>
 #include <util/atomic.h>
-#include <geometry_msgs/PoseStamped.h>
 
 ros::NodeHandle nh;
 
@@ -11,6 +10,12 @@ ros::NodeHandle nh;
 #define ENC_IN_RIGHT_A 3
 #define ENC_IN_LEFT_B 4
 #define ENC_IN_RIGHT_B 11
+
+#define WHEEL_BASE 21.2
+#define WHEEL_DIAMETER 6.7 //unit:cm
+#define LEFT_TICKS_PER_REVOLUTION 1700 //tick publish in 1 cycle
+#define RIGHT_TICKS_PER_REVOLUTION 1800 //tick publish in 1 cycle
+
 
 const int enA=9;
 const int enB=10;
@@ -36,26 +41,31 @@ geometry_msgs::Twist cmd;
 
 float pwr_left;
 float pwr_right;
+float left_out;
+float right_out;
 float lastCmdVelReceived=0;
 
 const int interval = 30;
 long previousMillis = 0;
 long currentMillis = 0;
 
-volatile int posi=0;
+volatile int left_posi = 0;
+volatile int right_posi = 0;
+int left_pos = 0;
+int right_pos = 0;
 
 void right_wheel_tick() {
    
   int val = digitalRead(ENC_IN_RIGHT_B);
+
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
-     if(val>0){
-      posi++;
-     }
-     else{
-      posi--;
-      }
+    if(val>0){
+    right_posi++;
+  }
+  else{
+    right_posi--;
+  }
    }
- 
   if (val == LOW) {
     Direction_right = false; 
   }
@@ -69,7 +79,9 @@ void right_wheel_tick() {
       right_wheel_tick_count.data = encoder_minimum;
     }
     else {
-      right_wheel_tick_count.data++;  
+      ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+      right_wheel_tick_count.data++; }
+      
     }    
   }
   else {
@@ -77,7 +89,9 @@ void right_wheel_tick() {
       right_wheel_tick_count.data = encoder_maximum;
     }
     else {
-      right_wheel_tick_count.data--;  
+      ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+      right_wheel_tick_count.data--;  }
+      
     }  
   }
 }
@@ -87,14 +101,13 @@ void left_wheel_tick() {
    
   int val = digitalRead(ENC_IN_LEFT_B);
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
-     if(val>0){
-      posi++;
-     }
-     else{
-      posi--;
-      }
-    }
- 
+    if(val>0){
+    left_posi++;
+  }
+  else{
+    left_posi--;
+  }
+   }
   if (val == LOW) {
     Direction_left = true; 
   }
@@ -107,7 +120,9 @@ void left_wheel_tick() {
       left_wheel_tick_count.data = encoder_minimum;
     }
     else {
-      left_wheel_tick_count.data++;  
+      ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+      left_wheel_tick_count.data++;  }
+     
     }  
   }
   else {
@@ -115,10 +130,35 @@ void left_wheel_tick() {
       left_wheel_tick_count.data = encoder_maximum;
     }
     else {
-      left_wheel_tick_count.data--;  
+      ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+      left_wheel_tick_count.data--; }
+     
     }  
   }
-} 
+}
+float leftSpeed() {
+    long previousTime = 0;
+    unsigned long currentTime = millis();
+    unsigned long deltaTime = currentTime - previousTime;  
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+    left_pos = left_posi;
+   }
+    float left_speed = (left_pos / LEFT_TICKS_PER_REVOLUTION)*PI*WHEEL_DIAMETER/((float) deltaTime * 1000);  
+    previousTime = currentTime;
+    return left_speed;
+}
+
+float rightSpeed() {
+    long previousTime = 0;
+    unsigned long currentTime = millis();
+    unsigned long deltaTime = currentTime - previousTime;  
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+    right_pos = right_posi;
+   }
+    float right_speed = (right_pos / RIGHT_TICKS_PER_REVOLUTION)*PI*WHEEL_DIAMETER/((float) deltaTime * 1000);  
+    previousTime = currentTime;
+    return right_speed;
+}
 
 
 void teleop(int an1, int an2, int an3, int an4){
@@ -132,66 +172,77 @@ void teleop(int an1, int an2, int an3, int an4){
 void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
   cmd = cmdVel;
   lastCmdVelReceived = (millis()/1000.0); 
+  double left_velocity;
+  double right_velocity;
+
+  left_velocity = cmdVel.linear.x - (cmdVel.angular.z*WHEEL_BASE/2.0); 
+  right_velocity = cmdVel.linear.x + (cmdVel.angular.z*WHEEL_BASE/2.0);
+
+  right_out = 10*right_velocity + pwr_right; 
+  left_out = 10*left_velocity + pwr_left;
 
   if(cmd.angular.z > 0){ //left
     if(cmd.linear.x > 0){ //straight and left
-      analogWrite(9,pwr_left);
-      analogWrite(10,pwr_right*1.2);
+      analogWrite(9,left_out);
+      analogWrite(10,right_out);
+      Serial.print("Straight and left");
     }
     else if(cmd.linear.x < 0){ //back and left
-     analogWrite(9,pwr_left);
-     analogWrite(10,pwr_right*1.2);
+     analogWrite(9,left_out);
+     analogWrite(10,right_out);
+      Serial.print("back and left");
     }
     else{
-      analogWrite(9,80);//turn left stay in the same place
-      analogWrite(10,80);
+      analogWrite(9,pwr_left);//turn left stay in the same place
+      analogWrite(10,pwr_right);
+       Serial.print("left");
     }
   }
 
   else if(cmd.angular.z < 0){ //right
+  
     if(cmd.linear.x > 0){ //straight and right
-      analogWrite(9,pwr_left*1.2);
-      analogWrite(10,pwr_right);
+      analogWrite(9,left_out);
+      analogWrite(10,right_out);
+       Serial.print("Straight and right");
     }
     else if(cmd.linear.x < 0){ //back and right
-     analogWrite(9,pwr_left*1.2);
-     analogWrite(10,pwr_right);
+     analogWrite(9,left_out);
+     analogWrite(10,right_out);
+      Serial.print("back and right");
     }
     else{
-      analogWrite(9,80);//turn right stay in the same place
-      analogWrite(10,80); 
+      analogWrite(9,pwr_left);//turn right stay in the same place
+      analogWrite(10,pwr_right); 
+       Serial.print("right");
     }
   }
   else{
     if(cmd.linear.x > 0){ //straight 
       analogWrite(9,pwr_left);
       analogWrite(10,pwr_right);
+       Serial.print("Straight");
     }
     else if(cmd.linear.x < 0){ // back
      analogWrite(9,pwr_left);
      analogWrite(10,pwr_right);
+      Serial.print("back");
     }
     else{
-      lastCmdVelReceived = 0; //stop
+      lastCmdVelReceived = 0; //stop robot
+       Serial.print("Stop");
     }
   }
-   
- pwr_left = constrain(pwr_left,0,255);
- pwr_right = constrain(pwr_right,0,255);
+
 }
  
 void set_pwm_values() {
-   int target = 100;
-   long prevT = 0;
-   long currT = micros();
-   float deltaT = ((float)(currT - prevT))/(1.0e6);
-   prevT = currT;
-
+   int target = 7.5;
    
-   int pos = 0;
-   ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
-    pos = posi;
-   }
+   long prevT = 0;
+   long currT = millis();
+   float deltaT = ((float)(currT - prevT))*1000;
+   prevT = currT;
    
    float left_debt;
    float right_debt;
@@ -202,16 +253,16 @@ void set_pwm_values() {
    int left_e;
    int right_e;
 
-   float kp_left = 3.1;
-   float ki_left = 1.2;
-   float kd_left = 1.2;
+   float kp_left = 0.1;
+   float ki_left = 0.000000000001;
+   float kd_left = 0.1;
 
-   float kp_right = 3.1;
-   float ki_right = 2.0;
-   float kd_right = 1.02;
+   float kp_right = 0.12;
+   float ki_right = 0.0000000000018;
+   float kd_right = 0.22;
    
-   left_e = pos-target;
-   right_e = pos-target;
+   left_e = target-leftSpeed();
+   right_e = target-rightSpeed();
    
    left_debt = (left_e-left_eprev)/deltaT;
    right_debt = (right_e-right_eprev)/deltaT;
@@ -226,10 +277,10 @@ void set_pwm_values() {
    right_eprev = right_e;
 
     pwr_left = fabs(u_left); 
-    pwr_right = fabs(u_right);    
-
-    pwr_left = constrain(pwr_left,0,255);
-    pwr_right = constrain(pwr_right,0,255);    
+    pwr_right = fabs(u_right);
+    
+    pwr_left = constrain(pwr_left,80,255);
+    pwr_right = constrain(pwr_right,80,255); 
 
    if(cmd.angular.z > 0){ //left
     if(cmd.linear.x > 0){ //straight and left
@@ -300,7 +351,7 @@ void setup() {
   nh.advertise(rightPub);
   nh.advertise(leftPub);
   nh.subscribe(subCmdVel);
-}
+  }
  
 void loop() {
    
@@ -320,4 +371,6 @@ void loop() {
     teleop(0,0,0,0);
   }
   set_pwm_values();
+  leftSpeed();
+  rightSpeed();
 }

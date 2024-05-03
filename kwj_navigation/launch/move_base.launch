@@ -9,11 +9,7 @@
     <node pkg="kwj_localization" type="initial_goal" name="initial_goal" />
 
     <node pkg="kwj_localization" type="odom_pub" name="odom_pub"/>
-      
-    <node pkg="kwj_navigation" type="global_path_planner" name="global_path_planner" />
-    
-    <node pkg="kwj_navigation" type="local_path_planner" name="local_path_planner" />
-  
+     
   <remap from="odom" to="odom_data_quat"/>
   <remap from="imu_data" to="imu/data"/>
   <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf">
@@ -31,6 +27,7 @@
   
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
   <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/> 
+  <param name="base_global_planner" value="navfn/NavfnROS"/>
     <rosparam file="$(find kwj_navigation)/param/costmap_common_params.yaml" command="load" ns="global_costmap" /> 
     <rosparam file="$(find kwj_navigation)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
     <rosparam file="$(find kwj_navigation)/param/local_costmap_params.yaml" command="load" />

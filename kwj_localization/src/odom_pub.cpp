@@ -112,10 +112,10 @@ void publish_quat() {
 
   for(int i = 0; i<36; i++) {
     if(i == 0 || i == 7 || i == 14) {
-      quatOdom.pose.covariance[i] = .01;
+      quatOdom.pose.covariance[i] = 0;
      }
      else if (i == 21 || i == 28 || i== 35) {
-       quatOdom.pose.covariance[i] += 0.1;
+       quatOdom.pose.covariance[i] += 0;
      }
      else {
        quatOdom.pose.covariance[i] = 0;
