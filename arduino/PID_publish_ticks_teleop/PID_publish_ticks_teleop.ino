@@ -17,6 +17,8 @@ ros::NodeHandle nh;
 
 float pwr_left;
 float pwr_right;
+float ang_pwr_left;
+float ang_pwr_right;
  
 boolean Direction_left = true;
 boolean Direction_right = true;
@@ -45,10 +47,10 @@ const int interval = 30;
 long previousMillis = 0;
 long currentMillis = 0;
 
-double left_velocity = (cmd_vel.linear.x - (cmd_vel.angular.z*21.2/2.0))/3.35;
-double right_velocity = (cmd_vel.linear.x + (cmd_vel.angular.z*21.2/2.0))/3.35;
-float left_out;
-float right_out;
+//double left_velocity = (cmd_vel.linear.x - (cmd_vel.angular.z*21.2/2.0))/3.35;
+//double right_velocity = (cmd_vel.linear.x + (cmd_vel.angular.z*21.2/2.0))/3.35;
+//float left_out;
+//float right_out;
 
 void right_wheel_tick() {
    
@@ -169,12 +171,20 @@ void updateVelocity(){
    int target = 7.5; //target velocity pwm:90 -> 60cm/8s -> 7.5 cm/s 
    
    float kp_left = 0.1;
-   float ki_left = 0.000000000001;
+   float ki_left = 0.00000000000001;
    float kd_left = 0.1;
 
    float kp_right = 0.12;
-   float ki_right = 0.0000000000018;
+   float ki_right = 0.000000000000018;
    float kd_right = 0.22;
+
+   float ang_kp_left = 0.17;
+   float ang_ki_left = 0.0000000000004;
+   float ang_kd_left = 0.5;
+
+   float ang_kp_right = 0.05;
+   float ang_ki_right = 0.00000000000005;
+   float ang_kd_right = 0.08;
    
    long prevT = 0;
    long currT = millis();
@@ -194,14 +204,21 @@ void updateVelocity(){
    float u_left = kp_left*left_e + kd_left*left_debt + ki_left*left_eintegral;  
    float u_right = kp_right*right_e + kd_right*right_debt + ki_right*right_eintegral;
 
+   float ang_u_left = ang_kp_left*left_e + ang_kd_left*left_debt + ang_ki_left*left_eintegral;
+   float ang_u_right = ang_kp_right*right_e + ang_kd_right*right_debt + ang_ki_right*right_eintegral;
+
    left_eprev = left_e;
    right_eprev = right_e;
 
    pwr_left = fabs(u_left);
    pwr_right = fabs(u_right);
+   ang_pwr_left = fabs(ang_u_left);
+   ang_pwr_right = fabs(ang_u_right);
    
    pwr_left = constrain(pwr_left,80,255);
    pwr_right = constrain(pwr_right,80,255); 
+   ang_pwr_left = constrain(ang_pwr_left,80,255);
+   ang_pwr_right = constrain(ang_pwr_right,80,255);
 }
 
 
@@ -270,17 +287,18 @@ rightSpeed();
     teleop(0,0,0,0);
   }
   else if(a == 0 && c > 0){ //left
-  right_out = right_velocity + pwr_right; 
-  left_out = left_velocity + pwr_left;
-  analogWrite(9,left_out); 
-  analogWrite(10,right_out);
+  //right_out = 10*right_velocity + (pwr_right+ang_pwr_left)/2; 
+  //left_out = 10*left_velocity + (pwr_left+ang_pwr_right)/2;
+  analogWrite(9,ang_pwr_left+7); 
+  analogWrite(10,ang_pwr_right-9);
     teleop(0,1,0,1);
   }
   else if(a == 0 && c < 0){ //right
-  right_out = right_velocity + pwr_right; 
-  left_out = left_velocity + pwr_left;
-  analogWrite(9,left_out);
-  analogWrite(10,right_out);
+  //right_out = right_velocity + (pwr_right+ang_pwr_left)/2; 
+  //left_out = left_velocity + (pwr_left+ang_pwr_right)/2;
+  
+  analogWrite(9,ang_pwr_left+2);
+  analogWrite(10,ang_pwr_right-1);
     teleop(1,0,1,0);
   }
 
