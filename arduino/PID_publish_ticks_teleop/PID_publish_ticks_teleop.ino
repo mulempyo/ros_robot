@@ -13,6 +13,14 @@
 #define WHEEL_DIAMETER 6.7 //unit:cm
 #define LEFT_TICKS_PER_REVOLUTION 1700 //tick publish in 1 cycle
 #define RIGHT_TICKS_PER_REVOLUTION 1800 //tick publish in 1 cycle
+
+#define TURN_LEFT_LWHEEL_COMPENSATION 7
+#define TURN_LEFT_RWHEEL_COMPENSATION 9 
+#define TURN_RIGHT_LWHEEL_COMPENSATION 2
+#define TURN_RIGHT_RWHEEL_COMPENSATION 1
+#define BACK_LWHEEL_COMPENSATION 5
+#define BACK_RWHEEL_COMPENSATION 3
+
 ros::NodeHandle nh;
 
 float pwr_left;
@@ -277,8 +285,8 @@ rightSpeed();
     teleop(1,0,0,1); 
   }
   else if(a < 0 && c == 0){ //back
-  analogWrite(9,pwr_left);
-  analogWrite(10,pwr_right);
+  analogWrite(9,pwr_left+BACK_LWHEEL_COMPENSATION);
+  analogWrite(10,pwr_right-BACK_RWHEEL_COMPENSATION);
     teleop(0,1,1,0);
   }
   else if(a == 0 && c == 0){ //stop
@@ -289,16 +297,16 @@ rightSpeed();
   else if(a == 0 && c > 0){ //left
   //right_out = 10*right_velocity + (pwr_right+ang_pwr_left)/2; 
   //left_out = 10*left_velocity + (pwr_left+ang_pwr_right)/2;
-  analogWrite(9,ang_pwr_left+7); 
-  analogWrite(10,ang_pwr_right-9);
+  analogWrite(9,ang_pwr_left+TURN_LEFT_LWHEEL_COMPENSATION); 
+  analogWrite(10,ang_pwr_right-TURN_LEFT_RWHEEL_COMPENSATION);
     teleop(0,1,0,1);
   }
   else if(a == 0 && c < 0){ //right
   //right_out = right_velocity + (pwr_right+ang_pwr_left)/2; 
   //left_out = left_velocity + (pwr_left+ang_pwr_right)/2;
   
-  analogWrite(9,ang_pwr_left+2);
-  analogWrite(10,ang_pwr_right-1);
+  analogWrite(9,ang_pwr_left+TURN_RIGHT_LWHEEL_COMPENSATION);
+  analogWrite(10,ang_pwr_right-TURN_RIGHT_RWHEEL_COMPENSATION);
     teleop(1,0,1,0);
   }
 
