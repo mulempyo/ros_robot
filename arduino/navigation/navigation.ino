@@ -16,6 +16,13 @@ ros::NodeHandle nh;
 #define LEFT_TICKS_PER_REVOLUTION 1700 //tick publish in 1 cycle
 #define RIGHT_TICKS_PER_REVOLUTION 1800 //tick publish in 1 cycle
 
+#define TURN_LEFT_LWHEEL_COMPENSATION 7
+#define TURN_LEFT_RWHEEL_COMPENSATION 9
+#define TURN_RIGHT_LWHEEL_COMPENSATION 2
+#define TURN_RIGHT_RWHEEL_COMPENSATION 1
+#define BACK_LWHEEL_COMPENSATION 5
+#define BACK_RWHEEL_COMPENSATION 3
+
 
 const int enA=9;
 const int enB=10;
@@ -41,8 +48,12 @@ geometry_msgs::Twist cmd;
 
 float pwr_left;
 float pwr_right;
+float ang_pwr_left;
+float ang_pwr_right;
 float left_out;
 float right_out;
+float back_left_out;
+float back_right_out;
 float lastCmdVelReceived=0;
 
 const int interval = 30;
@@ -172,72 +183,79 @@ void teleop(int an1, int an2, int an3, int an4){
 void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
   cmd = cmdVel;
   lastCmdVelReceived = (millis()/1000.0); 
+  
   double left_velocity;
   double right_velocity;
 
-  left_velocity = cmdVel.linear.x - (cmdVel.angular.z*WHEEL_BASE/2.0); 
-  right_velocity = cmdVel.linear.x + (cmdVel.angular.z*WHEEL_BASE/2.0);
-
-  right_out = 10*right_velocity + pwr_right; 
-  left_out = 10*left_velocity + pwr_left;
+  left_velocity = cmd.linear.x - (cmd.angular.z*WHEEL_BASE/2.0); 
+  right_velocity = cmd.linear.x + (cmd.angular.z*WHEEL_BASE/2.0);
 
   if(cmd.angular.z > 0){ //left
+   
+    right_out = 10*right_velocity + (pwr_right+ang_pwr_left-TURN_LEFT_RWHEEL_COMPENSATION)/2; 
+    left_out = 10*left_velocity + (pwr_left+ang_pwr_right+TURN_LEFT_LWHEEL_COMPENSATION)/2;
+    back_left_out = 10*left_velocity + (pwr_left+BACK_LWHEEL_COMPENSATION+ang_pwr_left+TURN_LEFT_LWHEEL_COMPENSATION)/2;
+    back_right_out = 10*right_velocity + (pwr_right-BACK_RWHEEL_COMPENSATION+ang_pwr_right-TURN_LEFT_RWHEEL_COMPENSATION)/2; 
+
     if(cmd.linear.x > 0){ //straight and left
       analogWrite(9,left_out);
       analogWrite(10,right_out);
-      Serial.print("Straight and left");
+      
     }
     else if(cmd.linear.x < 0){ //back and left
-     analogWrite(9,left_out);
-     analogWrite(10,right_out);
-      Serial.print("back and left");
+     analogWrite(9,back_left_out);
+     analogWrite(10,back_right_out);
+      
     }
     else{
-      analogWrite(9,pwr_left);//turn left stay in the same place
-      analogWrite(10,pwr_right);
-       Serial.print("left");
+      analogWrite(9,pwr_left+TURN_LEFT_LWHEEL_COMPENSATION);//turn left stay in the same place
+      analogWrite(10,pwr_right-TURN_LEFT_RWHEEL_COMPENSATION);
+       
     }
   }
 
   else if(cmd.angular.z < 0){ //right
-  
+    
+    right_out = 10*right_velocity + (pwr_right+ang_pwr_left-TURN_RIGHT_RWHEEL_COMPENSATION)/2; 
+    left_out = 10*left_velocity + (pwr_left+ang_pwr_right+TURN_RIGHT_LWHEEL_COMPENSATION)/2;
+    back_left_out = 10*left_velocity + (pwr_left+BACK_LWHEEL_COMPENSATION+ang_pwr_left+TURN_RIGHT_LWHEEL_COMPENSATION)/2;
+    back_right_out = 10*right_velocity + (pwr_right-BACK_RWHEEL_COMPENSATION+ang_pwr_right-TURN_RIGHT_RWHEEL_COMPENSATION)/2;
     if(cmd.linear.x > 0){ //straight and right
       analogWrite(9,left_out);
       analogWrite(10,right_out);
-       Serial.print("Straight and right");
+       
     }
     else if(cmd.linear.x < 0){ //back and right
-     analogWrite(9,left_out);
-     analogWrite(10,right_out);
-      Serial.print("back and right");
+     analogWrite(9,back_left_out);
+     analogWrite(10,back_right_out);
+      
     }
     else{
-      analogWrite(9,pwr_left);//turn right stay in the same place
-      analogWrite(10,pwr_right); 
-       Serial.print("right");
+      analogWrite(9,pwr_left+TURN_RIGHT_LWHEEL_COMPENSATION);//turn right stay in the same place
+      analogWrite(10,pwr_right-TURN_RIGHT_RWHEEL_COMPENSATION); 
+       
     }
   }
   else{
     if(cmd.linear.x > 0){ //straight 
       analogWrite(9,pwr_left);
       analogWrite(10,pwr_right);
-       Serial.print("Straight");
+       
     }
     else if(cmd.linear.x < 0){ // back
-     analogWrite(9,pwr_left);
-     analogWrite(10,pwr_right);
-      Serial.print("back");
+     analogWrite(9,pwr_left+BACK_LWHEEL_COMPENSATION);
+     analogWrite(10,pwr_right-BACK_RWHEEL_COMPENSATION);
+     
     }
     else{
       lastCmdVelReceived = 0; //stop robot
-       Serial.print("Stop");
+       
     }
   }
 
 }
- 
-void set_pwm_values() {
-   int target = 7.5;
+void updateVelocity(){
+  int target = 7.5; //7.5cm/s
    
    long prevT = 0;
    long currT = millis();
@@ -261,6 +279,15 @@ void set_pwm_values() {
    float ki_right = 0.0000000000018;
    float kd_right = 0.22;
    
+   float ang_kp_left = 0.17;
+   float ang_ki_left = 0.0000000000004;
+   float ang_kd_left = 0.5;
+
+   float ang_kp_right = 0.05;
+   float ang_ki_right = 0.00000000000005;
+   float ang_kd_right = 0.08;
+   
+
    left_e = target-leftSpeed();
    right_e = target-rightSpeed();
    
@@ -273,15 +300,25 @@ void set_pwm_values() {
    float u_left = kp_left*left_e + kd_left*left_debt + ki_left*left_eintegral;  
    float u_right = kp_right*right_e + kd_right*right_debt + ki_right*right_eintegral;
 
+   float ang_u_left = ang_kp_left*left_e + ang_kd_left*left_debt + ang_ki_left*left_eintegral;
+   float ang_u_right = ang_kp_right*left_e + ang_kd_right*left_debt + ang_ki_right*left_eintegral;
+
    left_eprev = left_e;
    right_eprev = right_e;
 
     pwr_left = fabs(u_left); 
     pwr_right = fabs(u_right);
+    ang_pwr_left = fabs(ang_u_left);
+    ang_pwr_right = fabs(ang_u_right);
     
     pwr_left = constrain(pwr_left,80,255);
     pwr_right = constrain(pwr_right,80,255); 
+    ang_pwr_left = constrain(ang_pwr_left,80,255);
+    ang_pwr_right = constrain(ang_pwr_right,80,255);
+}
 
+void set_pwm_values() {
+   
    if(cmd.angular.z > 0){ //left
     if(cmd.linear.x > 0){ //straight and left
       teleop(1,0,0,1);
@@ -371,6 +408,7 @@ void loop() {
     teleop(0,0,0,0);
   }
   set_pwm_values();
+  updateVelocity();
   leftSpeed();
   rightSpeed();
 }
