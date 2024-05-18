@@ -10,16 +10,18 @@
 #define ENC_IN_LEFT_B 4
 #define ENC_IN_RIGHT_B 11
 
-#define WHEEL_DIAMETER 6.7 //unit:cm
+#define WHEEL_DIAMETER 0.067 //unit:m
 #define LEFT_TICKS_PER_REVOLUTION 1700 //tick publish in 1 cycle
 #define RIGHT_TICKS_PER_REVOLUTION 1800 //tick publish in 1 cycle
 
-#define TURN_LEFT_LWHEEL_COMPENSATION 7
-#define TURN_LEFT_RWHEEL_COMPENSATION 9 
-#define TURN_RIGHT_LWHEEL_COMPENSATION 2
+#define TURN_LEFT_LWHEEL_COMPENSATION 8
+#define TURN_LEFT_RWHEEL_COMPENSATION 10
+#define TURN_RIGHT_LWHEEL_COMPENSATION 3
 #define TURN_RIGHT_RWHEEL_COMPENSATION 1
 #define BACK_LWHEEL_COMPENSATION 5
 #define BACK_RWHEEL_COMPENSATION 3
+#define STRAIGHT_LWHEEL_COMPENSATION 5
+#define STRAIGHT_RWHEEL_COMPENSATION 3
 
 ros::NodeHandle nh;
 
@@ -176,14 +178,14 @@ void teleop(int an1 ,int an2 ,int an3 ,int an4){
 
 void updateVelocity(){
    
-   int target = 7.5; //target velocity pwm:90 -> 60cm/8s -> 7.5 cm/s 
+   int target = 0.075; //target velocity pwm:90 -> 60cm/8s -> 7.5 cm/s -> 0.075m/s
    
-   float kp_left = 0.1;
+   float kp_left = 0.2;
    float ki_left = 0.00000000000001;
-   float kd_left = 0.1;
+   float kd_left = 0.2;
 
-   float kp_right = 0.12;
-   float ki_right = 0.000000000000018;
+   float kp_right = 0.1;
+   float ki_right = 0.00000000000001;
    float kd_right = 0.22;
 
    float ang_kp_left = 0.17;
@@ -280,8 +282,8 @@ rightSpeed();
   
 
   if(a > 0 && c == 0){ //straight
-  analogWrite(9,pwr_left);
-  analogWrite(10,pwr_right);
+  analogWrite(9,pwr_left+STRAIGHT_LWHEEL_COMPENSATION);
+  analogWrite(10,pwr_right-STRAIGHT_RWHEEL_COMPENSATION);
     teleop(1,0,0,1); 
   }
   else if(a < 0 && c == 0){ //back
