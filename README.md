@@ -154,7 +154,7 @@ rqt_graph는 현재 실행되는 노드,토픽들을 그래프로 보여줍니�
 
 <h4>Navigation rqt_graph 실행 결과 (TF 연결 전)</h4>
 
-<img src="no 2d estimate navi rqt.png"/>
+
 
 <h4>Navigation rqt_graph 실행 결과 (TF 연결 후)</h4>
 
