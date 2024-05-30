@@ -1,6 +1,6 @@
 #include <ros.h>
 #include <std_msgs/Float64.h>
-#include <std_msgs/Int16.h>
+#include <std_msgs/Int32.h>
 #include <geometry_msgs/Twist.h>
 #include <util/atomic.h>
 
@@ -17,9 +17,9 @@ ros::NodeHandle nh;
 #define RIGHT_TICKS_PER_REVOLUTION 1800 //tick publish in 1 cycle
 
 #define TURN_LEFT_LWHEEL_COMPENSATION 8
-#define TURN_LEFT_RWHEEL_COMPENSATION 10
+#define TURN_LEFT_RWHEEL_COMPENSATION 9
 #define TURN_RIGHT_LWHEEL_COMPENSATION 3
-#define TURN_RIGHT_RWHEEL_COMPENSATION 1
+#define TURN_RIGHT_RWHEEL_COMPENSATION 4
 #define BACK_LWHEEL_COMPENSATION 5
 #define BACK_RWHEEL_COMPENSATION 3
 #define STRAIGHT_LWHEEL_COMPENSATION 5
@@ -36,14 +36,14 @@ const int in4=8;
 boolean Direction_left = true;
 boolean Direction_right = true;
 
-const int encoder_minimum = -32768;
-const int encoder_maximum = 32767;
+const int encoder_minimum = -2147483648;
+const int encoder_maximum = 2147483647;
  
 
-std_msgs::Int16 right_wheel_tick_count;
+std_msgs::Int32 right_wheel_tick_count;
 ros::Publisher rightPub("right_ticks", &right_wheel_tick_count);
  
-std_msgs::Int16 left_wheel_tick_count;
+std_msgs::Int32 left_wheel_tick_count;
 ros::Publisher leftPub("left_ticks", &left_wheel_tick_count);
 
 geometry_msgs::Twist cmd;

@@ -1,3 +1,4 @@
+
 <?xml version="1.0"?>
 <robot name="KWJBot">
     <link name="base_footprint"/>
@@ -17,7 +18,7 @@
         <geometry>
           <mesh filename="package://kwj_description/total.stl"/>
         </geometry>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <origin xyz="0 0 0" rpy="0 0 3.14159"/>
         <material name="grey">
           <color rgba="0.5 0.5 0.5 1"/>
         </material>
