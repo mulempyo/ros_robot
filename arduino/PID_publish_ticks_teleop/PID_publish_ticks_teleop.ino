@@ -2,7 +2,7 @@
 #include <util/atomic.h>
 #include <std_msgs/String.h>
 #include <geometry_msgs/Twist.h>
-#include <std_msgs/Int16.h>
+#include <std_msgs/Int32.h>
 #include <std_msgs/Float64.h>
 
 #define ENC_IN_LEFT_A 2
@@ -15,11 +15,10 @@
 #define RIGHT_TICKS_PER_REVOLUTION 1800 //tick publish in 1 cycle
 
 #define TURN_LEFT_LWHEEL_COMPENSATION 8
-#define TURN_LEFT_RWHEEL_COMPENSATION 9
+#define TURN_LEFT_RWHEEL_COMPENSATION 10
 #define TURN_RIGHT_LWHEEL_COMPENSATION 3
-#define TURN_RIGHT_RWHEEL_COMPENSATION 4
-#define BACK_LWHEEL_COMPENSATION 5
-
+#define TURN_RIGHT_RWHEEL_COMPENSATION 3
+#define BACK_LWHEEL_COMPENSATION 6
 #define BACK_RWHEEL_COMPENSATION 3
 #define STRAIGHT_LWHEEL_COMPENSATION 5
 #define STRAIGHT_RWHEEL_COMPENSATION 3
@@ -47,9 +46,9 @@ float right_eprev = 0;
 float left_eintegral = 0;
 float right_eintegral = 0;
 
-std_msgs::Int16 right_wheel_tick_count;
+std_msgs::Int32 right_wheel_tick_count;
 ros::Publisher rightPub("right_ticks", &right_wheel_tick_count);
-std_msgs::Int16 left_wheel_tick_count;
+std_msgs::Int32 left_wheel_tick_count;
 ros::Publisher leftPub("left_ticks", &left_wheel_tick_count);
 
 geometry_msgs::Twist cmd_vel;
@@ -260,8 +259,8 @@ attachInterrupt(digitalPinToInterrupt(ENC_IN_RIGHT_A), right_wheel_tick, RISING)
 
 nh.getHardware()->setBaud(57600);
 nh.initNode();
-nh.advertise(rightPub);
 nh.advertise(leftPub);
+nh.advertise(rightPub);
 nh.subscribe(sub);
 }
 
@@ -273,8 +272,8 @@ leftSpeed();
 rightSpeed();
   if (currentMillis - previousMillis > interval) {
     previousMillis = currentMillis;
-    leftPub.publish( &left_wheel_tick_count );
-    rightPub.publish( &right_wheel_tick_count );
+    leftPub.publish(&left_wheel_tick_count );
+    rightPub.publish(&right_wheel_tick_count );
  
   }
  

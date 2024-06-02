@@ -1,6 +1,5 @@
-
 <?xml version="1.0"?>
-<robot name="KWJBot">
+<robot name="KWJBot" >
     <link name="base_footprint"/>
    
     <joint name="base_joint" type="fixed">
