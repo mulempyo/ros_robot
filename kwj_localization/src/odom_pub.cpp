@@ -24,12 +24,15 @@ double dist;
 double dth;
 double dx;
 double dy;
-double x;
-double y;
-double th;
+double x=0;
+double y=0;
+double th=0;
 double dt;
-double vx;
-double vth;
+double vx=0;
+double vth=0;
+double left_compensate;
+double right_compensate;
+ 
 ros::Time current_time;
 ros::Time last_time;
 
@@ -47,12 +50,14 @@ void Calc_Left(const std_msgs::Int32& leftCount) {
  
     if (leftTicks > 2147483000) {
       leftTicks -= 4294967295;
+      distanceLeft += (leftTicks/LEFT_TICKS_PER_REVOLUTION)*PI*WHEEL_DIAMETER;
     }
     else if (leftTicks < -2147483000) {
       leftTicks += 4294967295;
+      distanceLeft += (leftTicks/LEFT_TICKS_PER_REVOLUTION)*PI*WHEEL_DIAMETER;
     }
     else{}
-    distanceLeft = (leftTicks/LEFT_TICKS_PER_REVOLUTION)*PI*WHEEL_DIAMETER;
+    distanceLeft = (leftCount.data/LEFT_TICKS_PER_REVOLUTION)*PI*WHEEL_DIAMETER * left_compensate;
  }
   lastCountL = leftCount.data;
 }
@@ -66,12 +71,14 @@ void Calc_Right(const std_msgs::Int32& rightCount) {
      
     if (rightTicks > 2147483000) {
       rightTicks -= 4294967295;
+      distanceRight += (rightTicks/RIGHT_TICKS_PER_REVOLUTION)*PI*WHEEL_DIAMETER;
     }
     else if (rightTicks < -2147483000) {
       rightTicks += 4294967295;
+      distanceRight += (rightTicks/RIGHT_TICKS_PER_REVOLUTION)*PI*WHEEL_DIAMETER;
     }
     else{}
-    distanceRight = (rightTicks/RIGHT_TICKS_PER_REVOLUTION)*PI*WHEEL_DIAMETER;
+    distanceRight = (rightCount.data/RIGHT_TICKS_PER_REVOLUTION)*PI*WHEEL_DIAMETER * right_compensate;
   }
   lastCountR = rightCount.data;
 }
@@ -79,7 +86,8 @@ void Calc_Right(const std_msgs::Int32& rightCount) {
 // Update odometry information
 void update_odom() { 
   
-  current_time = ros::Time::now();
+   current_time = ros::Time::now();
+   dt =(current_time-last_time).toSec();
 
    dist = ((distanceRight + distanceLeft) / 2);
    
@@ -94,8 +102,6 @@ void update_odom() {
 
    vx = dist/dt;
    vth = dth/dt;
-
-   dt =(current_time-last_time).toSec();
 
    geometry_msgs::Quaternion odom_quat =tf::createQuaternionMsgFromYaw(th);
 
@@ -141,14 +147,21 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "odom_pub");
   ros::NodeHandle node;
 
+  ros::param::get("/odom_pub/left_compensate",left_compensate);
+  ros::param::get("/odom_pub/right_compensate",right_compensate);
+
   // Subscribe to ROS topics
   ros::Subscriber subForRightCounts = node.subscribe("right_ticks", 100, Calc_Right);
   ros::Subscriber subForLeftCounts = node.subscribe("left_ticks", 100, Calc_Left);
   
   // Publisher of full odom message where orientation is quaternion
   odom_data_pub_quat = node.advertise<nav_msgs::Odometry>("odom", 100);
-  
-   ros::spin();
+  ros::Rate r(30);
+   while(ros::ok()){
+     update_odom();
+     ros::spinOnce();
+     r.sleep();
+   }
    return 0;
 }
 

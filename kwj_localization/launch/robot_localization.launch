@@ -2,13 +2,16 @@
   <include file="$(find kwj_description)/launch/urdf.launch"/> 
   <include file="$(find kwj_bringup)/launch/kwj_bringup.launch" />
 
-    <node pkg="kwj_localization" type="odom_pub" name="odom_pub"/>
+    <node pkg="kwj_localization" type="odom_pub" name="odom_pub">
+     <param name="left_compensate" type="double" value="0.00165"/>
+     <param name="right_compensate" type="double" value="0.00165"/>
+    </node>
   
   <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se_odom" clear_params="true">
     <rosparam file="$(find kwj_localization)/config/ekf.yaml" command="load"/>
   </node>
 
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find kwj_localization)/rviz/odom_test.rviz" />
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find kwj_localization)/rviz/odom_test.rviz" /> 
 
    <node name="map_server" pkg="map_server" type="map_server" args="$(find kwj_navigation)/map/map.yaml"/> 
 </launch>
