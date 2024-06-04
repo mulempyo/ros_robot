@@ -23,7 +23,8 @@ ros::NodeHandle nh;
 #define BACK_LWHEEL_COMPENSATION 6
 #define BACK_RWHEEL_COMPENSATION 3
 #define STRAIGHT_LWHEEL_COMPENSATION 5
-#define STRAIGHT_RWHEEL_COMPENSATION 3
+#define STRAIGHT_RWHEEL_COMPENSATION 5
+
 
 
 const int enA=9;
@@ -194,10 +195,10 @@ void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
 
   if(cmd.angular.z > 0){ //left
    
-    right_out = 100*right_velocity + (pwr_right-STRAIGHT_RWHEEL_COMPENSATION+ang_pwr_left-TURN_LEFT_RWHEEL_COMPENSATION)/2; 
-    left_out = 100*left_velocity + (pwr_left+STRAIGHT_LWHEEL_COMPENSATION+ang_pwr_right+TURN_LEFT_LWHEEL_COMPENSATION)/2;
-    back_left_out = 100*left_velocity + (pwr_left+BACK_LWHEEL_COMPENSATION+ang_pwr_left+TURN_LEFT_LWHEEL_COMPENSATION)/2;
-    back_right_out = 100*right_velocity + (pwr_right-BACK_RWHEEL_COMPENSATION+ang_pwr_right-TURN_LEFT_RWHEEL_COMPENSATION)/2; 
+    right_out = 150*right_velocity + (pwr_right-STRAIGHT_RWHEEL_COMPENSATION+ang_pwr_left-TURN_LEFT_RWHEEL_COMPENSATION)/2; 
+    left_out = 150*left_velocity + (pwr_left+STRAIGHT_LWHEEL_COMPENSATION+ang_pwr_right+TURN_LEFT_LWHEEL_COMPENSATION)/2;
+    back_left_out = 150*left_velocity + (pwr_left+BACK_LWHEEL_COMPENSATION+ang_pwr_left+TURN_LEFT_LWHEEL_COMPENSATION)/2;
+    back_right_out = 150*right_velocity + (pwr_right-BACK_RWHEEL_COMPENSATION+ang_pwr_right-TURN_LEFT_RWHEEL_COMPENSATION)/2; 
 
     if(cmd.linear.x > 0){ //straight and left
       analogWrite(9,left_out);
@@ -218,10 +219,10 @@ void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
 
   else if(cmd.angular.z < 0){ //right
     
-    right_out = 100*right_velocity + (pwr_right-STRAIGHT_RWHEEL_COMPENSATION+ang_pwr_left-TURN_RIGHT_RWHEEL_COMPENSATION)/2; 
-    left_out = 100*left_velocity + (pwr_left+STRAIGHT_LWHEEL_COMPENSATION+ang_pwr_right+TURN_RIGHT_LWHEEL_COMPENSATION)/2;
-    back_left_out = 100*left_velocity + (pwr_left+BACK_LWHEEL_COMPENSATION+ang_pwr_left+TURN_RIGHT_LWHEEL_COMPENSATION)/2;
-    back_right_out = 100*right_velocity + (pwr_right-BACK_RWHEEL_COMPENSATION+ang_pwr_right-TURN_RIGHT_RWHEEL_COMPENSATION)/2;
+    right_out = 150*right_velocity + (pwr_right-STRAIGHT_RWHEEL_COMPENSATION+ang_pwr_left-TURN_RIGHT_RWHEEL_COMPENSATION)/2; 
+    left_out = 150*left_velocity + (pwr_left+STRAIGHT_LWHEEL_COMPENSATION+ang_pwr_right+TURN_RIGHT_LWHEEL_COMPENSATION)/2;
+    back_left_out = 150*left_velocity + (pwr_left+BACK_LWHEEL_COMPENSATION+ang_pwr_left+TURN_RIGHT_LWHEEL_COMPENSATION)/2;
+    back_right_out = 150*right_velocity + (pwr_right-BACK_RWHEEL_COMPENSATION+ang_pwr_right-TURN_RIGHT_RWHEEL_COMPENSATION)/2;
     if(cmd.linear.x > 0){ //straight and right
       analogWrite(9,left_out);
       analogWrite(10,right_out);
