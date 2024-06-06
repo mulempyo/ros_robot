@@ -14,9 +14,9 @@
 #define LEFT_TICKS_PER_REVOLUTION 1700 //tick publish in 1 cycle
 #define RIGHT_TICKS_PER_REVOLUTION 1800 //tick publish in 1 cycle
 
-#define TURN_LEFT_LWHEEL_COMPENSATION 8
+#define TURN_LEFT_LWHEEL_COMPENSATION 9
 #define TURN_LEFT_RWHEEL_COMPENSATION 10
-#define TURN_RIGHT_LWHEEL_COMPENSATION 3
+#define TURN_RIGHT_LWHEEL_COMPENSATION 4
 #define TURN_RIGHT_RWHEEL_COMPENSATION 3
 #define BACK_LWHEEL_COMPENSATION 6
 #define BACK_RWHEEL_COMPENSATION 3
@@ -283,7 +283,7 @@ rightSpeed();
 
   if(a > 0 && c == 0){ //straight
   analogWrite(9,pwr_left+STRAIGHT_LWHEEL_COMPENSATION);
-  analogWrite(10,pwr_right-STRAIGHT_RWHEEL_COMPENSATION);
+  analogWrite(10,pwr_right-STRAIGHT_RWHEEL_COMPENSATION); 
     teleop(1,0,0,1); 
   }
   else if(a < 0 && c == 0){ //back
