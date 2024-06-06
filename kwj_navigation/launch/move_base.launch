@@ -1,4 +1,5 @@
 <launch>
+    <arg name="odom_topic" default="/odometry/filtered"/>
 
     <include file="$(find kwj_bringup)/launch/kwj_bringup.launch" />
 
