@@ -11,10 +11,6 @@ Teleop_Twist_Keyboard
 
 Navigation
 
-Path Planning
-
->Global path planning, Local path planning
-
 <h2>하드웨어</h2>
 
 SBC
@@ -82,7 +78,7 @@ ROS
 
 >Distribution: Melodic
 
->ROS Packages: rosserial, rosserial_python, rosserial_arduino, gmapping, hector_slam, navigation, myahrs_driver, teleop_twist_keyboard, ydlidar_ros_driver, YDLidar-SDK, urdf, joint_state_publisher, robot_state_publisher, amcl, costmap_2d, robot_pose_ekf
+>ROS Packages: rosserial, rosserial_python, rosserial_arduino, gmapping, hector_slam, navigation, myahrs_driver, teleop_twist_keyboard, ydlidar_ros_driver, YDLidar-SDK, urdf, joint_state_publisher, robot_state_publisher, amcl, costmap_2d, robot_pose_ekf,robot_localization
 
 <h2>How To Launch</h2>
 
@@ -148,8 +144,6 @@ rqt_graph는 현재 실행되는 노드,토픽들을 그래프로 보여줍니�
 
 <img src ="gmapping rqt_graph.png"/>
 
-
-
 <h4>Navigation rqt_graph 실행 결과</h4>
 
 <img src ="Navi rqt_graph.png"/>
@@ -173,6 +167,10 @@ rqt_graph는 현재 실행되는 노드,토픽들을 그래프로 보여줍니�
 <h2>참고</h2>
 
 DIY 로봇을 만들며 참고한 사이트와 책
+
+>http://wiki.ros.org/navigation
+
+>https://github.com/tgilmour94/ros_amr
 
 >https://github.com/lbrombach/practical_robot
 
