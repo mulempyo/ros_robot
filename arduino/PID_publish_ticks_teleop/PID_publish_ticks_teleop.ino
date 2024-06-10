@@ -1,9 +1,8 @@
 #include <ros.h>
 #include <util/atomic.h>
-#include <std_msgs/String.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/Int32.h>
-#include <std_msgs/Float64.h>
+
 
 #define ENC_IN_LEFT_A 2
 #define ENC_IN_RIGHT_A 3
@@ -33,8 +32,8 @@ float ang_pwr_right;
 boolean Direction_left = true;
 boolean Direction_right = true;
 
-const int encoder_minimum = -32768;
-const int encoder_maximum = 32767;
+const int encoder_minimum = -2147483648;
+const int encoder_maximum = 2147483647;
 volatile int left_posi = 0;
 volatile int right_posi = 0;
 int left_pos = 0;
@@ -178,7 +177,7 @@ void teleop(int an1 ,int an2 ,int an3 ,int an4){
 
 void updateVelocity(){
    
-   int target = 0.075; //target velocity pwm:90 -> 60cm/8s -> 7.5 cm/s -> 0.075m/s
+   float target = 0.075; //target velocity pwm:90 -> 60cm/8s -> 7.5 cm/s -> 0.075m/s
    
    float kp_left = 0.2;
    float ki_left = 0.00000000000001;
