@@ -144,21 +144,15 @@ rqt_graph는 현재 실행되는 노드,토픽들을 그래프로 보여줍니�
 
 ```$ rosrun rqt_graph rqt_graph```
 
-<h4> SLAM rqt_graph 실행 결과 (TF 연결 전)</h4>
+<h4> SLAM rqt_graph 실행 결과</h4>
 
-<img src ="no estimate rqt_graph.png"/>
-
-<h4>SLAM rqt_graph 실행 결과 (TF 연결 후)</h4>
-
-<img src ="yes estimate rqt_graph.png"/>
-
-<h4>Navigation rqt_graph 실행 결과 (TF 연결 전)</h4>
+<img src ="gmapping rqt_graph.png"/>
 
 
 
-<h4>Navigation rqt_graph 실행 결과 (TF 연결 후)</h4>
+<h4>Navigation rqt_graph 실행 결과</h4>
 
-<img src ="yes estimate nav rqt.png"/>
+<img src ="Navi rqt_graph.png"/>
 
 <h3> TF </h3>
 
