@@ -1,5 +1,7 @@
 <launch>
     <include file="$(find kwj_bringup)/launch/kwj_bringup.launch" />
+   
+    <include file="$(find kwj_description)/launch/urdf.launch"/> 
 
     <node pkg="kwj_localization" type="odom_pub" name="odom_pub"/>
 
