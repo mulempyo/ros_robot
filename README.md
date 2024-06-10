@@ -59,6 +59,7 @@ Networkcard
 
 >3층: <img src = "Lidar Pro.stl"/>
 
+>urdf model: <img src = "total.stl"/>
 <h2>하드웨어 연결</h2>
 
 <h3>1층</h3>
