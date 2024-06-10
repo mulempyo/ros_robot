@@ -1,7 +1,7 @@
 <H1>KWJ ROBOT</H1>
 나의 첫번째 ROS를 이용한 DIY로봇  
 
-<img src="20240321_173450.jpg"/> <img src="20240321_173507.jpg"/> <img src="20240321_173520.jpg"/>
+<img src="KWJBot1.jpg"/> <img src="KWJBot2.jpg"/> <img src="KWJBot3.jpg"/>
 <h2>기능</h2> 
 SLAM  
 
