@@ -162,21 +162,13 @@ rqt_graph는 현재 실행되는 노드,토픽들을 그래프로 보여줍니�
 
 이 프로젝트에서 SLAM,Navigation 수행 전 rviz에서 2d estimate pose를 이용하여 tf를 연결시켜야 합니다.
 
-<h4>SLAM TF 연결 전</h4>
+<h4>SLAM TF</h4>
 
-<img src ="no estimate tf.png"/>
-
-<h4>SLAM TF 연결 후</h4>
-
-<img src ="yes estimate tf.png"/>
+<img src ="gmapping TF.png"/>
 
 <h4>Navigation TF 연결 전</h4>
 
-<img src="no etimate navigation.png"/>
-
-<h4>Navigation TF 연결 후</h4>
-
-<img src = "yes_estimate navigation.png"/>
+<img src="Navi TF.png"/>
 
 <h2>참고</h2>
 
