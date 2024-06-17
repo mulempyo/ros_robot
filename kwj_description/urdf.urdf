@@ -15,9 +15,9 @@
       </inertial>
       <visual>
         <geometry>
-          <mesh filename="package://kwj_description/total.stl"/>
+          <mesh filename="package://kwj_description/total_180.stl"/>
         </geometry>
-        <origin xyz="0 0 0" rpy="0 0 3.14159"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
         <material name="grey">
           <color rgba="0.5 0.5 0.5 1"/>
         </material>

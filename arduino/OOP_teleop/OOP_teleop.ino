@@ -31,8 +31,8 @@ namespace motor_control {
   
   boolean Direction_left = true;
   boolean Direction_right = true;
-  const int encoder_minimum = -32768;
-  const int encoder_maximum = 32767;
+  const int encoder_minimum = -2147483648;
+  const int encoder_maximum = 2147483647;
   volatile int left_posi = 0;
   volatile int right_posi = 0;
 
@@ -69,7 +69,7 @@ namespace motor_control {
       kp_left(kp_left_), ki_left(ki_left_), kd_left(kd_left_), 
       kp_right(kp_right_), ki_right(ki_right_), kd_right(kd_right_), 
       ang_kp_left(ang_kp_left_), ang_ki_left(ang_ki_left_), ang_kd_left(ang_kd_left_), 
-      ang_kp_right(ang_kp_right_), ang_ki_right(ang_ki_right_), ang_kd_right(ang_kd_right_) {}
+      ang_kp_right(ang_kp_right_), ang_ki_right(ang_ki_right_), ang_kd_right(ang_kd_right_) {}     
 
   
 
@@ -213,7 +213,7 @@ namespace motor_control {
 
   ros::Subscriber <geometry_msgs::Twist> subCmdVel("cmd_vel",MotorControl::calc_pwm_values);
 
-  MotorControl::~MotorControl() {}
+    MotorControl::~MotorControl() {}
 }
 
 void setup() {
