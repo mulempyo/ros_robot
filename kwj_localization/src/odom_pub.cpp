@@ -48,11 +48,11 @@ void Calc_Left(const std_msgs::Int32& leftCount) {
      static int lastCountL = 0;     
      leftTicks = (leftCount.data - lastCountL);
  
-    if (leftTicks > 2147483000) {
-      leftTicks = (leftCount.data - 2147483647) + (-2147483648-lastCountL);     
+    if (leftTicks > 2147483000) { //overflow
+      leftTicks =  0 - (4294967295 - leftTicks);     
     }
-    else if (leftTicks < -2147483000) {
-      leftTicks = (leftCount.data + 2147483648) + (2147483647-lastCountL);
+    else if (leftTicks < -2147483000) { //underflow
+      leftTicks = 4294967295-leftTicks;
     }
     else{}
     distanceLeft = (static_cast<double>(leftTicks)/LEFT_TICKS_PER_REVOLUTION)*PI*WHEEL_DIAMETER;
@@ -66,10 +66,10 @@ void Calc_Right(const std_msgs::Int32& rightCount) {
      rightTicks = rightCount.data - lastCountR;
      
     if (rightTicks > 2147483000) {
-      rightTicks = (rightCount.data - 2147483647) + (-2147483648-lastCountR);
+      rightTicks = 0 - (4294967295 - rightTicks);
     }
     else if (rightTicks < -2147483000) {
-      rightTicks = (rightCount.data + 2147483648) + (2147483647-lastCountR);
+      rightTicks = 4294967295-rightTicks;
     }
     else{}
     distanceRight = (static_cast<double>(rightTicks)/RIGHT_TICKS_PER_REVOLUTION)*PI*WHEEL_DIAMETER;
@@ -164,10 +164,3 @@ int main(int argc, char **argv) {
    return 0;
 }
 
-
-
-
-
-
-
- 
