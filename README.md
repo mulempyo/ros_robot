@@ -165,24 +165,6 @@ rqt_graph는 현재 실행되는 노드,토픽들을 그래프로 보여줍니�
 
 <img src="Navi TF.png"/>
 
-<h2>참고</h2>
-
-DIY 로봇을 만들며 참고한 사이트와 책
-
->http://wiki.ros.org/navigation
-
->https://github.com/tgilmour94/ros_amr
-
->https://github.com/lbrombach/practical_robot
-
->https://github.com/zeta0707/jessicar2
-
->https://github.com/ROBOTIS-GIT/turtlebot3
-
->https://automaticaddison.com/how-to-set-up-the-ros-navigation-stack-on-a-robot/
-
->book: Practical Robotics in C++:: Build and Program Real Autonomous Robots Using Raspberry Pi,Brombach, Lloyd,ISBN13:9789389423464, ISBN10:9389423465
-
 <h2>Repository 변화</h2>
 
 >https://github.com/mulempyo/my_first_ros_robot -> https://github.com/mulempyo/64robot -> https://github.com/mulempyo/ros_robot
