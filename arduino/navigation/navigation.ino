@@ -219,10 +219,10 @@ void calc_pwm_values(const geometry_msgs::Twist& cmdVel) {
 
   else if(cmd.angular.z < 0){ //right
     
-    right_out = (150*right_velocity-(left_velocity-right_velocity)*130) + (pwr_right-STRAIGHT_RWHEEL_COMPENSATION+ang_pwr_left-TURN_RIGHT_RWHEEL_COMPENSATION)/2; 
-    left_out = (150*left_velocity+(left_velocity-right_velocity)*130) + (pwr_left+STRAIGHT_LWHEEL_COMPENSATION+ang_pwr_right+TURN_RIGHT_LWHEEL_COMPENSATION)/2;
-    back_left_out = (150*left_velocity-(left_velocity-right_velocity)*130) + (pwr_left+BACK_LWHEEL_COMPENSATION+ang_pwr_left+TURN_RIGHT_LWHEEL_COMPENSATION)/2;
-    back_right_out = (150*right_velocity+(left_velocity-right_velocity)*130) + (pwr_right-BACK_RWHEEL_COMPENSATION+ang_pwr_right-TURN_RIGHT_RWHEEL_COMPENSATION)/2;
+    right_out = (150*right_velocity-(left_velocity-right_velocity)*150) + (pwr_right-STRAIGHT_RWHEEL_COMPENSATION+ang_pwr_left-TURN_RIGHT_RWHEEL_COMPENSATION)/2; 
+    left_out = (150*left_velocity+(left_velocity-right_velocity)*150) + (pwr_left+STRAIGHT_LWHEEL_COMPENSATION+ang_pwr_right+TURN_RIGHT_LWHEEL_COMPENSATION)/2;
+    back_left_out = (150*left_velocity-(left_velocity-right_velocity)*150) + (pwr_left+BACK_LWHEEL_COMPENSATION+ang_pwr_left+TURN_RIGHT_LWHEEL_COMPENSATION)/2;
+    back_right_out = (150*right_velocity+(left_velocity-right_velocity)*150) + (pwr_right-BACK_RWHEEL_COMPENSATION+ang_pwr_right-TURN_RIGHT_RWHEEL_COMPENSATION)/2;
     if(cmd.linear.x > 0){ //straight and right
       analogWrite(9,left_out);
       analogWrite(10,right_out);
