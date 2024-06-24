@@ -123,6 +123,8 @@ roscore, rosrun, roslaunch같은 ROS명령어를 사용하기 위해서는 항�
 
 ```$ roscore```
 
+'''$ roslaunch kwj_bringup kwj_bringup.launch
+
 ```$ roslaunch kwj_slam hector_slam.launch```
 
 ```$ rosrun teleop_twist_keyboard teleop_twist_keyboard.py```
