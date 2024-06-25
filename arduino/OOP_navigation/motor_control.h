@@ -1,3 +1,14 @@
+/*
+Author: Kim Won Jun
+Publish: /left_ticks, /right_ticks
+Subscribe: /cmd_vel
+this code trans navigation arduino code to OOP
+
+*/
+
+
+
+
 #ifndef MOTOR_CONTROL_H
 #define MOTOR_CONTROL_H
 

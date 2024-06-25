@@ -1,3 +1,10 @@
+/*
+Author: Kim Won Jun
+Publish: /left_ticks, /right_ticks
+Subscribe: /cmd_vel
+this code use when i using teleop_twist_keyboard,SLAM package
+this code have PID, so my robot can go straight,rotate straight
+*/
 #include <ros.h>
 #include <util/atomic.h>
 #include <geometry_msgs/Twist.h>

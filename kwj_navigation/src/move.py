@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+#this code applicate navigation
+#it can move continuously
+#first,second,third dict have destination information 
 import rospy
 
 # Brings in the SimpleActionClient
