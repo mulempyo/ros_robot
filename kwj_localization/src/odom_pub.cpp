@@ -1,10 +1,24 @@
+/*
+Publish: /odom
+Subscribe: /left_ticks, /right_ticks
+
+this code is Odometry code
+it calculate odometry using /left_ticks, /right_ticks
+this code publish /odom topic after apply covariance
+if you use move.py in kwj_navigation/src, you remove annotation about subscribe /initialpose topic
+*/
+
+
+
+
+
 #include "ros/ros.h"
 #include "std_msgs/Int32.h"
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <tf2/LinearMath/Quaternion.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
+//#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <cmath>
 
 #define LEFT_TICKS_PER_REVOLUTION 1700 //tick publish in 1 cycle
@@ -43,7 +57,7 @@ int leftTicks;
 int rightTicks;
 
 using namespace std;
-
+/*
 void initialPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg)
 {
     double x = msg->pose.pose.position.x;
@@ -57,7 +71,7 @@ void initialPoseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPt
     ROS_WARN("Current robot position: x = %f, y = %f, z = %f", x, y, z);
     ROS_WARN("Current robot orientation: x = %f, y = %f, z = %f, w = %f", orientation_x, orientation_y, orientation_z, orientation_w);
 }
- 
+ */
 // Calculate the distance the left wheel has traveled since the last cycle
 void Calc_Left(const std_msgs::Int32& leftCount) {
      static int lastCountL = 0;     
@@ -167,7 +181,7 @@ int main(int argc, char **argv) {
   // Subscribe to ROS topics
   ros::Subscriber subForRightCounts = node.subscribe("right_ticks", 100, Calc_Right);
   ros::Subscriber subForLeftCounts = node.subscribe("left_ticks", 100, Calc_Left);
-  ros::Subscriber sub = node.subscribe("initialpose", 10, initialPoseCallback);
+  //ros::Subscriber sub = node.subscribe("initialpose", 10, initialPoseCallback);
   
   // Publisher of full odom message where orientation is quaternion
   odom_data_pub_quat = node.advertise<nav_msgs::Odometry>("odom", 100);

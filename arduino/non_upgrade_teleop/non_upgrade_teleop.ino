@@ -1,3 +1,13 @@
+/*
+Author: Kim Won Jun
+Publish: /left_ticks, /right_ticks
+Subscribe: /cmd_vel
+this code use when i use teleop_twist_keyboard package
+this code can`t go straight, rotate straight
+*/
+
+
+
 #include <ros.h>
 #include <util/atomic.h>
 #include <std_msgs/String.h>
