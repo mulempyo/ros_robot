@@ -107,7 +107,7 @@ roscore, rosrun, roslaunch같은 ROS명령어를 사용하기 위해서는 항�
 
 ```$ roslaunch kwj_slam gmapping.launch```
 
-```$ rosrun teleop_twist_keyboard teleop_twist_keyboard.py```
+```$ rosrun teleop_twist_keyboard teleop_twist_keyboard.py``` --> 영상을 찍을때나 테스트를 할 때는 제 편의를 위해 turtlebot3의 teleop_twist_keyboard.py를 빌려썼습니다.
 
 >만약 맵을 다 그렸다면 맵을 저장하기 위해서는 터미널을 키고 다음 단계를 따라야 합니다. 기본적으로 맵 이름은 map입니다. map.pgm, map.yaml이 생성됩니다.
 
@@ -123,7 +123,7 @@ roscore, rosrun, roslaunch같은 ROS명령어를 사용하기 위해서는 항�
 
 ```$ roslaunch kwj_slam hector_slam.launch```
 
-```$ rosrun teleop_twist_keyboard teleop_twist_keyboard.py```
+```$ rosrun teleop_twist_keyboard teleop_twist_keyboard.py``` 
 
 >만약 맵을 다 그렸다면 맵을 저장하기 위해서는 터미널을 키고 다음 단계를 따라야 합니다.
 
