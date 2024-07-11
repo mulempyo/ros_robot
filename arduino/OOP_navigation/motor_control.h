@@ -1,14 +1,3 @@
-/*
-Author: Kim Won Jun
-Publish: /left_ticks, /right_ticks
-Subscribe: /cmd_vel
-this code trans navigation arduino code to OOP
-
-*/
-
-
-
-
 #ifndef MOTOR_CONTROL_H
 #define MOTOR_CONTROL_H
 
@@ -29,10 +18,18 @@ namespace navigation {
 
   class MotorControl {
     private:
+      const int enA;
+      const int enB;
       const int in1;
       const int in2;
       const int in3;
       const int in4;
+      float left_out;
+      float right_out;
+      float back_left_out;
+      float back_right_out;
+      double left_velocity;
+      double right_velocity;
       int left_pos;
       int right_pos;
       float target;
@@ -56,20 +53,14 @@ namespace navigation {
       float ang_kp_right;
       float ang_ki_right;
       float ang_kd_right;
-      float left_out;
-      float right_out;
-      float back_left_out;
-      float back_right_out;
-      double left_velocity;
-      double right_velocity;
+      
+     
+
+    public:
       float pwr_left;
       float pwr_right;
       float ang_pwr_left;
       float ang_pwr_right;
-
-    public:
-      const int enA;
-      const int enB;
       const int interval;
       long previousMillis;
       long currentMillis;
