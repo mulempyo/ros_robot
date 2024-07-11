@@ -41,8 +41,6 @@ namespace motor_control{
     float lastCmdVelReceived;
     int left_pos;
     int right_pos;
-    double left_velocity;
-    double right_velocity;
     float target;
     float left_debt;
     float right_debt;

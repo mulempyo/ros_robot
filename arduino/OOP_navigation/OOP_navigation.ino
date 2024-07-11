@@ -23,7 +23,6 @@
 
 ros::NodeHandle nh;
 geometry_msgs::Twist cmd;
-float lastCmdVelReceived;
 
 namespace navigation {
   ros::Publisher rightPub("right_ticks", &right_wheel_tick_count);
@@ -172,7 +171,6 @@ namespace navigation {
 
   void MotorControl::sub_pwm_values(const geometry_msgs::Twist& cmdVel) {
     cmd = cmdVel;
-    lastCmdVelReceived = (millis()/1000.0);
   } 
 
   void MotorControl::calc_pwm_values(){
@@ -218,7 +216,8 @@ namespace navigation {
         analogWrite(9, pwr_left + BACK_LWHEEL_COMPENSATION);
         analogWrite(10, pwr_right - BACK_RWHEEL_COMPENSATION);
       } else {
-        lastCmdVelReceived = 0; // stop robot
+        analogWrite(9,0);// stop robot
+        analogWrite(10,0);
       }
     }
   }
@@ -288,6 +287,9 @@ namespace navigation {
   ros::Subscriber<geometry_msgs::Twist>subCmdVel("cmd_vel",MotorControl::sub_pwm_values);
   MotorControl::~MotorControl() {}
 }
+
+navigation::MotorControl motorController;
+ 
 void setup() {
   pinMode(ENC_IN_LEFT_A, INPUT_PULLUP);
   pinMode(ENC_IN_LEFT_B, INPUT);
@@ -312,7 +314,6 @@ void setup() {
 }
 
 void loop() {
-  navigation::MotorControl motorController;
   nh.spinOnce();
   motorController.updateVelocity();
   motorController.calc_pwm_values();
@@ -326,9 +327,4 @@ void loop() {
     navigation::rightPub.publish(&navigation::right_wheel_tick_count);
   }
 
-  if ((millis() / 1000) - lastCmdVelReceived > 1) {
-    analogWrite(motorController.enA, 0);
-    analogWrite(motorController.enB, 0);
-    motorController.teleop(0, 0, 0, 0);
-  }
 }
