@@ -5,7 +5,7 @@
 <h2>기능</h2> 
 SLAM  
 
->Gmapping, Hector_slam
+>Gmapping, Hector_slam, cartographer
 
 Teleop_Twist_Keyboard
 
@@ -124,6 +124,14 @@ roscore, rosrun, roslaunch같은 ROS명령어를 사용하기 위해서는 항�
 ```$ roslaunch kwj_slam hector_slam.launch```
 
 ```$ rosrun teleop_twist_keyboard teleop_twist_keyboard.py``` 
+
+<h3>Cartogpraher</h3>
+
+```$ roscore```
+
+```$ roslaunch kwj_slam carto.launch```
+
+```$ rosrun teleop_twist_keyboard teleop_twist_keyboard.py```
 
 >만약 맵을 다 그렸다면 맵을 저장하기 위해서는 터미널을 키고 다음 단계를 따라야 합니다.
 
