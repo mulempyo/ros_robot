@@ -133,10 +133,6 @@ roscore, rosrun, roslaunch같은 ROS명령어를 사용하기 위해서는 항�
 
 ```$ rosrun teleop_twist_keyboard teleop_twist_keyboard.py```
 
->만약 맵을 다 그렸다면 맵을 저장하기 위해서는 터미널을 키고 다음 단계를 따라야 합니다.
-
-```$ rosrun map_server map_saver```
-
 <h3>Navigation</h3>
 
 ```$ roscore```
