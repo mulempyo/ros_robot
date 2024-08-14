@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<robot name="KWJBot" xmlns:xacro="http://ros.org/wiki/xacro">
+  
+  <gazebo reference="base_link">
+    <material>Gazebo/DarkGrey</material>
+    <mu1>0.9</mu1>
+    <mu2>0.9</mu2>
+  </gazebo>
+  
+  
+</robot>
+

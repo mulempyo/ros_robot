@@ -1,0 +1,42 @@
+<sdf version="1.6">
+  <world name="default">
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+
+    <!-- Custom ground plane with map texture -->
+    <model name="map_ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>20 20</size> <!-- ¸Ê Å©±â¿¡ ¸Â°Ô Á¶Á¤ -->
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>20 20</size> <!-- ¸Ê Å©±â¿¡ ¸Â°Ô Á¶Á¤ -->
+            </plane>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://$(find kwj_description)/map/map.png</uri>
+              <name>Gazebo/White</name>
+            </script>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>
+

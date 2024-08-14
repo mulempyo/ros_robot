@@ -1,0 +1,21 @@
+<launch>
+   <!-- Load the urdf into the parameter server. -->
+   <param name="robot_description" command="$(find xacro)/xacro --inorder $(find kwj_description)/urdf/kwj.urdf.xacro"/>
+
+   <node pkg="joint_state_publisher" name="joint_state_publisher" type="joint_state_publisher"/> 
+   <node pkg="robot_state_publisher" type="robot_state_publisher" name="rob_st_pub"/> 
+   
+
+   <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find kwj_description)/world/my_world.world"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+   </include>
+
+    <node pkg="gazebo_ros" type="spawn_model" name="spawn_urdf" args="-urdf -model KwjBot -x 0 -y 0 -z 0 -param robot_description"/>
+
+
+  </launch>

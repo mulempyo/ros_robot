@@ -9,7 +9,7 @@
     <rosparam file="$(find kwj_localization)/config/ekf.yaml" command="load"/>
    </node>
 
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find kwj_localization)/rviz/odom_test.rviz" />
+   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find kwj_localization)/rviz/odom_test.rviz" /> 
 
     <arg name="set_base_frame" default="base_footprint"/>
     <arg name="set_odom_frame" default="odom"/>
