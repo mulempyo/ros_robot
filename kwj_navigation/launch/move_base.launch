@@ -15,15 +15,15 @@
       <rosparam file="$(find kwj_localization)/config/ekf.yaml" command="load"/>
     </node>
    
-  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
-  <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS"/> 
-  <param name="base_global_planner" value="rrt_planner/RRTPlanner"/>
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen"> 
+  <param name="base_local_planner" value="pure_pursuit_planner/PurePursuitPlanner"/>
+  <param name="base_global_planner" value="rrt/RRTPlanner"/>
     <rosparam file="$(find kwj_navigation)/param/costmap_common_params.yaml" command="load" ns="global_costmap" /> 
     <rosparam file="$(find kwj_navigation)/param/costmap_common_params.yaml" command="load" ns="local_costmap" />
     <rosparam file="$(find kwj_navigation)/param/local_costmap_params.yaml" command="load" />
     <rosparam file="$(find kwj_navigation)/param/global_costmap_params.yaml" command="load" /> 
     <rosparam file="$(find kwj_navigation)/param/move_base_params.yaml" command="load" />
-    <rosparam file="$(find kwj_navigation)/param/dwa_local_planner_params.yaml" command="load" />
+    <rosparam file="$(find kwj_navigation)/param/pure_pursuit_planner.yaml" command="load" />
    
   </node>
    
