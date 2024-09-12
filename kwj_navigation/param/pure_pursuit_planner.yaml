@@ -1,0 +1,9 @@
+PurePursuitPlanner:
+   lookahead_distance: 0.3
+   max_velocity: 0.2
+   min_velocity: 0.01
+   max_angular_velocity: 1.5
+   min_angular_velocity: 0.01
+   xy_goal_tolerance: 0.1
+   yaw_goal_tolerance: 0.1
+  
