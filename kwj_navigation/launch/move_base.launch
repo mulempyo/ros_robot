@@ -3,7 +3,9 @@
 
     <include file="$(find kwj_bringup)/launch/kwj_bringup.launch" />
 
-    <node name="map_server" pkg="map_server" type="map_server" args="$(find kwj_navigation)/map/carto_obstacle_map.yaml"/>
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find kwj_navigation)/map/carto_map.yaml"/>
+
+   <!-- <node pkg="detect_object" type="bounding_boxes_3d" name="detect_object_pottedplant"/> -->
   
     <include file="$(find kwj_navigation)/launch/amcl.launch" />
     
@@ -25,10 +27,10 @@
     <rosparam file="$(find kwj_navigation)/param/move_base_params.yaml" command="load" />
     <rosparam file="$(find kwj_navigation)/param/dwa_planner.yaml" command="load" />
     
-   
   </node>
-   
-  
+
+  <node pkg="costmap_update" type="update_map" name="update_costmap"/>
+
   <!-- Run Rviz -->
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find kwj_navigation)/rviz/rviz.rviz" /> 
 
